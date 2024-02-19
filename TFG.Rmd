@@ -1,0 +1,309 @@
+---
+title: "TFG"
+author: "Uxío Merino"
+date: "2024-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Carga de datos
+
+```{r}
+str(df_union)
+```
+
+Análise previo:
+```{r pressure, echo=FALSE}
+library(naniar)
+library(ggplot2)
+library(dplyr)
+
+## Datos faltantes
+n_miss(df_union) # Non existen datos faltantes 
+
+## Comprobación da integridade dos datos
+summary(df_union)
+
+df_union[df_union$PPP < 0, ] # Valores non plausibeis
+df_union[df_union$'%Asist' < 0, ] # Valores non plausibeis
+
+df_union[df_union$'%Asist' < 0, '%Asist'] <- 0
+df_union[df_union$PPP < 0, 'PPP'] <- 0 
+```
+
+Datos atípicos:
+```{r}
+df_num <- df_union %>% select_if(is.numeric)
+vars_norms <- 0
+for (col in colnames(df_num)){
+  columna <- df_num[[col]]
+  hist(columna, prob = T, main = paste("Histograma de", col))
+  lines(density(columna), col = "blue", lwd = 2)
+  outliers <- length(boxplot(columna, outline = TRUE, main = paste("Boxplot de", col))$out)
+  cat("\n\nA var", col, "ten", outliers, "valores atípicos.\n")
+  p_valor <- shapiro.test(columna)$p.value
+  if (p_valor > 0.05){
+    cat("Non cabe rexeitar normalidade para a variable", col, ", cun p-valor de ", p_valor)
+    vars_norms <- vars_norms + 1
+  }else{
+    cat("Rexeitamos a normalidade para a variable", col, ", cun p-valor de ", p_valor)
+  }
+}
+vars_norms
+```
+
+
+Correlación:
+```{r}
+cor_matrix <- cor(df_num)
+cor_matrix
+```
+
+
+PCA:
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(plotly)
+
+df_pca <- df_union[, -c(3, 6)]
+pca <- PCA(df_pca %>% select_if(is.numeric)) # This function includes an automatic standarization of data
+
+fviz_screeplot(pca, addlabels = TRUE, ylim = c(0, 20))
+
+pca <- PCA(df_pca %>% select_if(is.numeric), ncp = 5)
+
+loadings <- pca$var$coord[, 1:5]
+```
+```{r}
+sort(loadings[, 1], decreasing = TRUE) 
+```
++: Anotación (tiros de 2), % de rebs (todos), Faltas realizadas, Tapons
+-: Tiros de 3 e asistencias
+ Xogador interior, anotador en ataque e dominante na zona
+ 
+```{r}
+sort(loadings[, 2], decreasing = TRUE) 
+```
++: Anotación e tiros de 3, perdidas, faltas realizadas, Tiros libres
+-: % de rebs (todos), tapons realizados, % tiros asistidos (menos de 3)
+Xogador exterior, gran anotador e lanzador de longa distancia, creador de tiros
+
+```{r}
+sort(loadings[, 3], decreasing = TRUE) 
+```
++: % de tiros asistidos, puntos en xeral, % de rebs (defensivos e totais)
+-: Asistencias, pérdidas, tapons recibidosm faltas realizadas e % tiros de 2 intentados
+Xogador que anota sobre todo tras asistencia, non creador de tiros, non asiste 
+ moito nin perde o balon, polo que intuimos que é un xogador interior que asume pouco balon
+
+```{r}
+sort(loadings[, 4], decreasing = TRUE) 
+```
++: Ratio de asistencias e de perdidas, asist pp, faltas recibidas, puntos por tiro altos
+-: % tiros intentados, % de puntos, ppmin, tapons recibidos
+Xogador director de xogo, pouco anotador pero con bos porcentaxes, moi bo asistente e recuperados
+
+```{r}
+sort(loadings[, 5], decreasing = TRUE) 
+```
++: LE, Faltas e tapons recibidos, perdidas, tiros asistidos, rebotes e tapons
+-: % de tiros de 2, PPT2, %Asistidos e PPTC
+
+```{r}
+coord_indiv <- pca$ind$coord
+
+indiv <- list()
+topN <- list()
+n <- 15
+
+for (i in 1:5){
+  comp <- coord_indiv[, i]
+  indiv <- df_pca$Xogador[order(comp, decreasing = TRUE)][1:n]
+  scores <- comp[order(comp, decreasing = TRUE)][1:n]
+  competicion <- df_union$Competicion[order(comp, decreasing = TRUE)][1:n]
+  año <- df_union$Año[order(comp, decreasing = TRUE)][1:n]
+  topN[[i]] <- data.frame(Indiv = indiv, Score = scores, Competicion = competicion, Año = año)
+}
+
+topN[5]
+```
+
+```{r}
+coord3D <- coord_indiv[, 1:3]
+df3D <- data.frame(coord_indiv[, 1:3])
+df3D$Xogador <- df_pca$Xogador
+df3D$Equipo <- df_pca$Equipo
+df3D$Año <- df_pca$Año
+head(df3D)
+
+top_players <- list()
+for (i in 1:3){
+  players <- topN[[i]]$Indiv
+  for (x in players){
+    top_players <- append(top_players, x)
+  }
+}
+
+df_coords <- df3D %>% filter(Xogador %in% top_players)
+
+plot <- plot_ly(df_coords, x = ~Dim.1, y = ~Dim.2, z = ~Dim.3, type = "scatter3d", mode = "markers", text = ~Xogador)
+plot <- plot %>% add_trace(marker = list(size = 3, color = ~Dim.1, colorscale = "Viridis"))
+plot <- plot %>% layout(scene = list(xaxis = list(title = "Comp 1"),
+                                     yaxis = list(title = "Comp 2"),
+                                     zaxis = list(title = "Comp 3")),
+                        title = "Xogadores máis significativos en cada compoñente")
+plot
+```
+
+
+SIMILITUDES:
+
+```{r}
+# DF para similitudes
+library(proxy)
+
+df_sims <- data.frame(coord_indiv[, 1:5])
+df_sims$Xogador <- df_pca$Xogador
+df_sims$Equipo <- df_pca$Equipo
+df_sims$Competicion <- df_pca$Competicion
+df_sims$Año <- df_pca$Año
+
+```
+
+```{r}
+# funcions
+sim <- function(df, x1, x2, method = "cosine") {
+  xogador1 <- df[df$Xogador == x1, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
+  xogador2 <- df[df$Xogador == x2, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
+
+  similitud_coseno <- proxy::simil(x = xogador1, y = xogador2, method = method)
+  
+  return(similitud_coseno)
+}
+
+buscar_xogador <- function(df, x1, equipo = NA, comp = NA, año = NA, method = "cosine"){
+  coords1 <- df[df$Xogador == x1, c("Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5")]
+  if (!is.na(comp)) df <- df[df$Competicion == comp, ]
+  if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
+  if (!is.na(año)) df <- df[df$Año == año, ]
+  sim_max <- 0
+  
+  for (i in 1:dim(df)[1]){
+    x2 <- df[i, "Xogador"]
+    coords2 <- df[df$Xogador == x2, c("Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5")]
+    if (dim(coords1)[1] > 1) coords1 <- coords1[2, ]
+    if (x2 != x1){
+      sim <- proxy::simil(coords1, coords2, method = method)
+      if (sim > sim_max){
+        sim_max <- sim
+        xogador_final <- x2
+      }
+    }
+  }
+  return (c(xogador_final, sim_max))
+}
+```
+
+
+Correxir isto:
+```{r}
+# Exemplo de uso funcion sim
+xogador1 <- '22 EDY TAVARES'
+xogador2 <- '13 SERGIO RODRIGUEZ'
+xogador3 <- '0 NIGEL WILLIAMS-GOSS'
+xogador4 <- '17 VINCENT POIRIER'
+
+similitud <- sim(df_sims, xogador1, xogador2) # Tavares e Sergio Rodr
+similitud
+similitud2 <- sim(df_sims, xogador1, xogador3) # Tavares e Williams-Goss
+similitud2
+similitud3 <- sim(df_sims, xogador3, xogador2) # Sergio Rodr e Williams-Goss
+similitud3
+similitud4 <- sim(df_sims, xogador1, xogador4) # Tavares e Poirier
+similitud4
+```
+
+```{r}
+# Exemplo de uso funcion buscar_xogador
+x1 <- "22 EDY TAVARES"
+buscar_xogador(df_sims, x1, año = "2023/24")
+
+buscar_xogador(df_sims, "17 JUAN NUNEZ", comp = "LigaACB", año = "2022/23")
+buscar_xogador(df_sims, "17 JUAN NUNEZ", comp = "EuroCup")
+
+buscar_xogador(df_sims, x1, comp = "EuroCup")
+buscar_xogador(df_sims, x1, comp = "LigaACB", año = "2022/23")
+
+buscar_xogador(df_sims, "51 BRUNO CABOCLO", comp = "LigaACB", año = "2022/23")
+buscar_xogador(df_sims, "51 BRUNO CABOCLO", comp = "EuroCup")
+```
+
+APLICACIÓN INDIVIDUAL OBRADOIRO:
+```{r}
+df_obradoiro <- df_sims[df_sims$Equipo == "Monbus Obradoiro" & df_sims$Año == "2023/24", ]
+
+for (i in df_obradoiro$Xogador){
+  c <- buscar_xogador(df_obradoiro, i)
+  c2 <- buscar_xogador(df_sims, i, año = "2023/24")
+  cat("O xogador máis similar a ", i, " no equipo é ", c[1], "cunha similitude de ", as.numeric(c[2])*100,"%",
+      "\nEn toda a BD é ", c2[1], "cunha similitude de ", as.numeric(c2[2])*100, "%\n\n")
+}
+```
+
+```{r}
+matriz_datos <- df_obradoiro[, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
+
+similitudes <- proxy::simil(x = matriz_datos, method = "cosine")
+sims <- as.matrix(similitudes)
+rownames(sims) <- df_obradoiro$Xogador
+colnames(sims) <- df_obradoiro$Xogador
+
+sims
+```
+
+
+CLUSTERING
+```{r}
+library(cluster)
+
+df_clusters <- df_pca[, -which(names(df_pca) %in% c("Xogador", "Equipo", "Competicion", "Año"))]
+df_clusters <- as.data.frame(apply(df_clusters, 2, function(x) (x - min(x)) / (max(x) - min(x))))
+
+ssd <- numeric(10)
+
+for (k in 1:10) {
+  kmeans_model <- kmeans(df_clusters, centers = k)
+  ssd[k] <- kmeans_model$tot.withinss
+}
+
+plot(1:10, ssd, type = 'b', pch = 19, frame = FALSE, xlab = 'Número de clusters (k)', ylab = 'Suma de distancias cuadradas')
+```
+
+```{r}
+clusters <- hkmeans(df_clusters, k = 7)
+
+clustered_data <- data.frame(Xogador = df_union$Xogador, CLUSTER = clusters$cluster, Equipo = df_union$Equipo, Comp = df_union$Competicion, Ano = df_union$Año)
+
+ordered_clustered_data <- clustered_data[order(clustered_data$CLUSTER), ]
+
+plot_clusters <- data.frame(Xogador = clustered_data$Xogador, Competicion = clustered_data$Comp, CLUSTER = clustered_data$CLUSTER, Ano = clustered_data$Ano, CP1 = coord_indiv[, 1], CP2 = coord_indiv[, 2], CP3 = coord_indiv[, 3])
+
+plot_clusters$NAME_CLUSTER <- paste("Nome: ", plot_clusters$Xogador, "<br>Competición: ", plot_clusters$Competicion, "<br>Ano: ", plot_clusters$Ano, "<br>Cluster: ", plot_clusters$CLUSTER)
+
+
+plot_ly(data = plot_clusters, x = ~CP1, y = ~CP2, z = ~CP3, type = "scatter3d", mode = "markers", marker = list(size = 3, color = ~CLUSTER), text = ~NAME_CLUSTER) %>%
+  add_markers() %>%
+  layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
+
+fviz_cluster(list(data = df_clusters, cluster = clusters$cluster))
+```
+
+```{r}
+ordered_clustered_data[ordered_clustered_data$CLUSTER==6,]
+```
+

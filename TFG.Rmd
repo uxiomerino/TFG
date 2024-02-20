@@ -11,13 +11,35 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 Carga de datos
-
 ```{r}
-str(df_union)
+setwd("~/GCED/TFG/Datos")
+
+load("df.RData")
+# load("df2.RData") Eurocup
+load("df3.RData")
+
+df <- df[df$Mins >= 100 & df$Partidos >= 7, ]
+str(df)
+df$Competicion <- rep("LigaACB", dim(df)[1])
+df$Año <- rep("2022/23", dim(df)[1])
+# 
+# df2 <- df2[df2$Mins >= 45 & df2$Partidos >= 3, ]
+# df2
+# df2$Competicion <- rep("EuroCup", dim(df2)[1])
+# df2$Año <- rep("2022/23", dim(df2)[1])
+
+df3 <- df3[df3$Mins >= 50 & df3$Partidos >= 4, ]
+df3$Competicion <- rep("LigaACB", dim(df3)[1])
+df3$Año <- rep("2023/24", dim(df3)[1])
+
+df_union <- rbind(df,df3)
+head(df_union)
+
+save(df_union, file="datos.RData")
 ```
 
 Análise previo:
-```{r pressure, echo=FALSE}
+```{r}
 library(naniar)
 library(ggplot2)
 library(dplyr)
@@ -130,7 +152,7 @@ for (i in 1:5){
   topN[[i]] <- data.frame(Indiv = indiv, Score = scores, Competicion = competicion, Año = año)
 }
 
-topN[5]
+topN[1]
 ```
 
 ```{r}
@@ -161,51 +183,49 @@ plot
 ```
 
 
-SIMILITUDES:
+DISTANCIAS:
 
 ```{r}
-# DF para similitudes
+# DF para distancias
 library(proxy)
 
-df_sims <- data.frame(coord_indiv[, 1:5])
-df_sims$Xogador <- df_pca$Xogador
-df_sims$Equipo <- df_pca$Equipo
-df_sims$Competicion <- df_pca$Competicion
-df_sims$Año <- df_pca$Año
-
+df_dist <- data.frame(coord_indiv[, 1:5])
+df_dist$Xogador <- df_pca$Xogador
+df_dist$Equipo <- df_pca$Equipo
+df_dist$Competicion <- df_pca$Competicion
+df_dist$Año <- df_pca$Año
 ```
 
 ```{r}
 # funcions
-sim <- function(df, x1, x2, method = "cosine") {
-  xogador1 <- df[df$Xogador == x1, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
-  xogador2 <- df[df$Xogador == x2, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
+distancia <- function(df, x1, ano1, x2, ano2, method = "Euclidean") {
+  xogador1 <- df[df$Xogador == x1 & df$Año == ano1, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
+  xogador2 <- df[df$Xogador == x2 & df$Año == ano2, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
 
-  similitud_coseno <- proxy::simil(x = xogador1, y = xogador2, method = method)
+  distancia <- proxy::dist(x = xogador1, y = xogador2, method = method)
   
-  return(similitud_coseno)
+  return(distancia)
 }
 
-buscar_xogador <- function(df, x1, equipo = NA, comp = NA, año = NA, method = "cosine"){
+buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Euclidean"){
   coords1 <- df[df$Xogador == x1, c("Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5")]
-  if (!is.na(comp)) df <- df[df$Competicion == comp, ]
   if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
   if (!is.na(año)) df <- df[df$Año == año, ]
-  sim_max <- 0
+  dist_min <- Inf
   
   for (i in 1:dim(df)[1]){
     x2 <- df[i, "Xogador"]
     coords2 <- df[df$Xogador == x2, c("Dim.1", "Dim.2", "Dim.3", "Dim.4", "Dim.5")]
     if (dim(coords1)[1] > 1) coords1 <- coords1[2, ]
     if (x2 != x1){
-      sim <- proxy::simil(coords1, coords2, method = method)
-      if (sim > sim_max){
-        sim_max <- sim
+      dist <- proxy::dist(coords1, coords2, method = method)
+      if (dist < dist_min){
+        dist_min <- dist
         xogador_final <- x2
       }
     }
   }
-  return (c(xogador_final, sim_max))
+  return (c(xogador_final, dist_min))
 }
 ```
 
@@ -218,52 +238,46 @@ xogador2 <- '13 SERGIO RODRIGUEZ'
 xogador3 <- '0 NIGEL WILLIAMS-GOSS'
 xogador4 <- '17 VINCENT POIRIER'
 
-similitud <- sim(df_sims, xogador1, xogador2) # Tavares e Sergio Rodr
-similitud
-similitud2 <- sim(df_sims, xogador1, xogador3) # Tavares e Williams-Goss
-similitud2
-similitud3 <- sim(df_sims, xogador3, xogador2) # Sergio Rodr e Williams-Goss
-similitud3
-similitud4 <- sim(df_sims, xogador1, xogador4) # Tavares e Poirier
-similitud4
+dist1 <- distancia(df_dist, xogador1, "2023/24", xogador2, "2023/24") 
+dist1 # Tavares e Sergio Rodr
+dist2 <- distancia(df_dist, xogador1, "2023/24", xogador3, "2022/23") 
+dist2 # Tavares e Williams-Goss
+dist3 <- distancia(df_dist, xogador3, "2022/23", xogador2, "2022/23") 
+dist3 # Sergio Rodr e Williams-Goss
+dist4 <- distancia(df_dist, xogador1,"2023/24", xogador4, "2023/24") 
+dist4 # Tavares e Poirier
 ```
 
 ```{r}
 # Exemplo de uso funcion buscar_xogador
 x1 <- "22 EDY TAVARES"
-buscar_xogador(df_sims, x1, año = "2023/24")
-
-buscar_xogador(df_sims, "17 JUAN NUNEZ", comp = "LigaACB", año = "2022/23")
-buscar_xogador(df_sims, "17 JUAN NUNEZ", comp = "EuroCup")
-
-buscar_xogador(df_sims, x1, comp = "EuroCup")
-buscar_xogador(df_sims, x1, comp = "LigaACB", año = "2022/23")
-
-buscar_xogador(df_sims, "51 BRUNO CABOCLO", comp = "LigaACB", año = "2022/23")
-buscar_xogador(df_sims, "51 BRUNO CABOCLO", comp = "EuroCup")
+buscar_xogador(df_dist, x1, año = "2023/24")
+buscar_xogador(df_dist, x1, año = "2022/23")
+buscar_xogador(df_dist, x1, equipo = "Monbus Obradoiro")
+buscar_xogador(df_dist, x1, equipo = "Monbus Obradoiro", año = "2022/23")
 ```
 
 APLICACIÓN INDIVIDUAL OBRADOIRO:
 ```{r}
-df_obradoiro <- df_sims[df_sims$Equipo == "Monbus Obradoiro" & df_sims$Año == "2023/24", ]
+df_obradoiro <- df_dist[df_dist$Equipo == "Monbus Obradoiro" & df_dist$Año == "2023/24", ]
 
 for (i in df_obradoiro$Xogador){
   c <- buscar_xogador(df_obradoiro, i)
-  c2 <- buscar_xogador(df_sims, i, año = "2023/24")
-  cat("O xogador máis similar a ", i, " no equipo é ", c[1], "cunha similitude de ", as.numeric(c[2])*100,"%",
-      "\nEn toda a BD é ", c2[1], "cunha similitude de ", as.numeric(c2[2])*100, "%\n\n")
+  c2 <- buscar_xogador(df_dist, i, año = "2023/24")
+  cat("O xogador máis similar a ", i, " no equipo é ", c[1], "cunha distancia de ", as.numeric(c[2]),
+      "\nEn toda a BD é ", c2[1], "cunha distancia de ", as.numeric(c2[2]),"\n\n")
 }
 ```
 
 ```{r}
 matriz_datos <- df_obradoiro[, c('Dim.1', 'Dim.2', 'Dim.3', 'Dim.4', 'Dim.5')]
 
-similitudes <- proxy::simil(x = matriz_datos, method = "cosine")
-sims <- as.matrix(similitudes)
-rownames(sims) <- df_obradoiro$Xogador
-colnames(sims) <- df_obradoiro$Xogador
+distancias <- proxy::dist(x = matriz_datos)
+dists <- as.matrix(distancias)
+rownames(dists) <- df_obradoiro$Xogador
+colnames(dists) <- df_obradoiro$Xogador
 
-sims
+dists
 ```
 
 
@@ -285,7 +299,7 @@ plot(1:10, ssd, type = 'b', pch = 19, frame = FALSE, xlab = 'Número de clusters
 ```
 
 ```{r}
-clusters <- hkmeans(df_clusters, k = 7)
+clusters <- hkmeans(df_clusters, k = 6)
 
 clustered_data <- data.frame(Xogador = df_union$Xogador, CLUSTER = clusters$cluster, Equipo = df_union$Equipo, Comp = df_union$Competicion, Ano = df_union$Año)
 
@@ -304,6 +318,6 @@ fviz_cluster(list(data = df_clusters, cluster = clusters$cluster))
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==6,]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==3,]
 ```
 

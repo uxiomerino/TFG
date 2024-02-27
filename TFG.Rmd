@@ -241,7 +241,7 @@ buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Eucl
 ```
 
 
-Correxir isto:
+Exemplos:
 ```{r}
 # Exemplo de uso funcion sim
 xogador1 <- '22 EDY TAVARES'
@@ -292,43 +292,61 @@ dists
 ```
 
 
-CLUSTERING
+
+CLUSTERING NO JERARQUICO:
 ```{r}
 library(cluster)
 
-df_clusters <- df_pca[, -which(names(df_pca) %in% c("Xogador", "Equipo", "Competicion", "Año"))]
-df_clusters <- as.data.frame(apply(df_clusters, 2, function(x) (x - min(x)) / (max(x) - min(x))))
+df_clusters <- df_pca[, -which(names(df_pca) %in% c("Xogador", "Equipo", "Año"))]
+df_clusters <- scale(df_clusters)
 
-ssd <- numeric(10)
-
-for (k in 1:10) {
-  kmeans_model <- kmeans(df_clusters, centers = k)
-  ssd[k] <- kmeans_model$tot.withinss
-}
-
-plot(1:10, ssd, type = 'b', pch = 19, frame = FALSE, xlab = 'Número de clusters (k)', ylab = 'Suma de distancias cuadradas')
+k_values <- 1:10
+fviz_nbclust(df_clusters, kmeans, method = "wss", k.max = max(k_values))
 ```
 
 ```{r}
-clusters <- hkmeans(df_clusters, k = 6)
+clusters <- hkmeans(df_clusters, k = 7)
 
-clustered_data <- data.frame(Xogador = df_union$Xogador, CLUSTER = clusters$cluster, Equipo = df_union$Equipo, Comp = df_union$Competicion, Ano = df_union$Año)
+clustered_data <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, CLUSTER = clusters$cluster, Equipo = df_union$Equipo)
 
 ordered_clustered_data <- clustered_data[order(clustered_data$CLUSTER), ]
 
-plot_clusters <- data.frame(Xogador = clustered_data$Xogador, Competicion = clustered_data$Comp, CLUSTER = clustered_data$CLUSTER, Ano = clustered_data$Ano, CP1 = coord_indiv[, 1], CP2 = coord_indiv[, 2], CP3 = coord_indiv[, 3])
-
-plot_clusters$NAME_CLUSTER <- paste("Nome: ", plot_clusters$Xogador, "<br>Competición: ", plot_clusters$Competicion, "<br>Ano: ", plot_clusters$Ano, "<br>Cluster: ", plot_clusters$CLUSTER)
-
-
+plot_clusters <- data.frame(Xogador = clustered_data$Xogador, Ano = clustered_data$Ano, CLUSTER = clustered_data$CLUSTER, CP1 = pca$x[, 1], CP2 = pca$x[, 2], CP3 = pca$x[, 3])
+plot_clusters$NAME_CLUSTER <- paste("Nome: ", plot_clusters$Xogador, "<br>Ano: ", plot_clusters$Ano, "<br>Cluster: ", plot_clusters$CLUSTER)
 plot_ly(data = plot_clusters, x = ~CP1, y = ~CP2, z = ~CP3, type = "scatter3d", mode = "markers", marker = list(size = 3, color = ~CLUSTER), text = ~NAME_CLUSTER) %>%
   add_markers() %>%
   layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
-
+```
+```{r}
 fviz_cluster(list(data = df_clusters, cluster = clusters$cluster))
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==3,]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==6,]
 ```
 
+
+CLUSTERING JERARQUICO:
+```{r}
+clustering_jerarquico <- hclust(dist(df_clusters, method = "euclidean"), method = "complete")
+plot(clustering_jerarquico, main = "Dendograma")
+```
+
+```{r}
+clusters_jerarquico <- cutree(clustering_jerarquico, h = 10.5)
+
+clustered_jerarquico <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico)
+
+ordered_clustered_jerarquico <- clustered_jerarquico[order(clustered_jerarquico$CLUSTER), ]
+
+plot_clusters_jerarquico <- data.frame(Xogador = clustered_jerarquico$Xogador, Ano = clustered_jerarquico$Ano, CLUSTER = clustered_jerarquico$CLUSTER, CP1 = pca$x[, 1], CP2 = pca$x[, 2], CP3 = pca$x[, 3])
+plot_clusters_jerarquico$NAME_CLUSTER <- paste("Nome: ", plot_clusters_jerarquico$Xogador, "<br>Ano: ", plot_clusters_jerarquico$Ano, "<br>Cluster: ", plot_clusters_jerarquico$CLUSTER)
+plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "scatter3d", mode = "markers", marker = list(size = 3, color = ~CLUSTER), text = ~NAME_CLUSTER) %>%
+  add_markers() %>%
+  layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
+```
+
+
+```{r}
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==6, ]
+```

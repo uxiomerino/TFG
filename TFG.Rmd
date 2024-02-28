@@ -305,7 +305,7 @@ fviz_nbclust(df_clusters, kmeans, method = "wss", k.max = max(k_values))
 ```
 
 ```{r}
-clusters <- hkmeans(df_clusters, k = 7)
+clusters <- hkmeans(df_clusters, k = 5)
 
 clustered_data <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, CLUSTER = clusters$cluster, Equipo = df_union$Equipo)
 
@@ -322,7 +322,7 @@ fviz_cluster(list(data = df_clusters, cluster = clusters$cluster))
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==6,]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==5,]
 ```
 
 
@@ -333,7 +333,7 @@ plot(clustering_jerarquico, main = "Dendograma")
 ```
 
 ```{r}
-clusters_jerarquico <- cutree(clustering_jerarquico, h = 10.5)
+clusters_jerarquico <- cutree(clustering_jerarquico, h = 12)
 
 clustered_jerarquico <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico)
 
@@ -348,5 +348,5 @@ plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "s
 
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==6, ]
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==2, ]
 ```

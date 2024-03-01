@@ -104,20 +104,26 @@ fviz_pca_var(pca, col.var = "contrib", gradient.cols = c("#00AFBB", "#E7B800", "
 ```{r}
 loadings <- pca$rotation[, 1:5]
 sort(loadings[, 1], decreasing = TRUE) 
+barplot(loadings[, 1], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 1",
+        xlab = "Variable", ylab = "Loading en Dimensión 1", col = "skyblue", border = "black")
 ```
 +: Anotación (tiros de 2), Valoracion, % de rebs (todos), Faltas realizadas, Tapons
 -: Tiros de 3 e asistencias
  Xogador interior que destaca pola súa aportación ofensiva
  
 ```{r}
-sort(loadings[, 2], decreasing = TRUE) 
+sort(loadings[, 2], decreasing = TRUE)
+barplot(loadings[, 2], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 2",
+        xlab = "Variable", ylab = "Loading en Dimensión 2", col = "skyblue", border = "black")
 ```
 +: % de rebotes, % de tiros asistidos, tapons realizados
 -: Anotación de 3, Asistencias, Recuperacions e Perdidas
-Xogador interior dominante na pintura e intimidador
+Xogador interior dominante na zona e intimidador
 
 ```{r}
 sort(loadings[, 3], decreasing = TRUE)
+barplot(loadings[, 3], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 3",
+        xlab = "Variable", ylab = "Loading en Dimensión 3", col = "skyblue", border = "black")
 ```
 +: Pérdidas, Asistencias, Faltas realizadas
 -: Tiros asistidos, anotación (sobre todo de 3), % de rebotes
@@ -125,6 +131,8 @@ Manexador de balón, bo asistente e que non destaca pola súa anotación
 
 ```{r}
 sort(loadings[, 4], decreasing = TRUE) 
+barplot(loadings[, 4], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 4",
+        xlab = "Variable", ylab = "Loading en Dimensión 4", col = "skyblue", border = "black")
 ```
 +: Anotación total, tapones recibidos
 -: Asistencias, pérdidas, eficiencia de anotación, tiros asistidos, rebotes
@@ -133,10 +141,14 @@ finalizador de xogadas
 
 ```{r}
 sort(loadings[, 5], decreasing = TRUE) 
+barplot(loadings[, 5], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 5",
+        xlab = "Variable", ylab = "Loading en Dimensión 5", col = "skyblue", border = "black")
 ```
 +: Anotación (tiros de 2), valoracion, tiros libres
 -: LE, PPP, Faltas recibidas, tapones, rebotes, asistencias
 Anotador cerca do aro, penetrador ou interior
+
+
 ```{r}
 topN <- list()
 n <- 10
@@ -348,5 +360,5 @@ plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "s
 
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==2, ]
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==1, ]
 ```

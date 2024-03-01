@@ -180,6 +180,19 @@ minN[2]
 ```
 
 ```{r}
+# Visualizacions en 2D
+for (i in 1:4){
+  for (j in 2:5){
+    if (i != j)    plot(fviz_pca_ind(pca, axes = c(i, j)))
+  }
+}
+```
+
+
+
+
+
+```{r}
 coord3D <- pca$x[, 1:3]
 df3D <- data.frame(pca$x[, 1:3])
 df3D$Xogador <- df_pca$Xogador
@@ -187,17 +200,8 @@ df3D$Equipo <- df_pca$Equipo
 df3D$Año <- df_pca$Año
 head(df3D)
 
-top_players <- list()
-for (i in 1:3){
-  players <- topN[[i]]$Indiv
-  for (x in players){
-    top_players <- append(top_players, x)
-  }
-}
 
-df_coords <- df3D %>% filter(Xogador %in% top_players)
-
-plot <- plot_ly(df_coords, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers", text = ~Xogador)
+plot <- plot_ly(df3D, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers", text = ~Xogador)
 plot <- plot %>% add_trace(marker = list(size = 3, color = ~PC1, colorscale = "Viridis"))
 plot <- plot %>% layout(scene = list(xaxis = list(title = "Comp 1"),
                                      yaxis = list(title = "Comp 2"),
@@ -317,7 +321,7 @@ fviz_nbclust(df_clusters, kmeans, method = "wss", k.max = max(k_values))
 ```
 
 ```{r}
-clusters <- hkmeans(df_clusters, k = 5)
+clusters <- kmeans(df_clusters, centers = 5)
 
 clustered_data <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, CLUSTER = clusters$cluster, Equipo = df_union$Equipo)
 
@@ -340,8 +344,11 @@ ordered_clustered_data[ordered_clustered_data$CLUSTER==5,]
 
 CLUSTERING JERARQUICO:
 ```{r}
-clustering_jerarquico <- hclust(dist(df_clusters, method = "euclidean"), method = "complete")
-plot(clustering_jerarquico, main = "Dendograma")
+metodos = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+for (metodo in metodos){
+  clustering_jerarquico <- hclust(dist(df_clusters, method = "mahalanobis"), method = metodo)
+  plot(clustering_jerarquico, main = "Dendograma")
+}
 ```
 
 ```{r}

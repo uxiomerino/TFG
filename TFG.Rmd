@@ -84,6 +84,24 @@ cor_matrix <- cor(df_num)
 cor_matrix
 ```
 
+```{r}
+umbral <- 0.7
+
+pares_correlados <- which(abs(cor_matrix) > umbral & cor_matrix < 1, arr.ind = TRUE)
+nrow(pares_correlados) / ((nrow(cor_matrix)^2)/2)
+
+# Mostrar los pares de variables
+# for (i in 1:nrow(pares_correlados)) {
+#   row_index <- pares_correlados[i, 1]
+#   col_index <- pares_correlados[i, 2]
+#   
+#   var1 <- rownames(cor_matrix)[row_index]
+#   var2 <- colnames(cor_matrix)[col_index]
+#   
+#   cat("Variables con correlación superior ao umbral:", umbral, ":", var1, "e", var2, "\n")
+# }
+```
+
 
 PCA:
 ```{r}
@@ -333,12 +351,21 @@ plot_ly(data = plot_clusters, x = ~CP1, y = ~CP2, z = ~CP3, type = "scatter3d", 
   add_markers() %>%
   layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
 ```
+
+```{r}
+for (i in 1:4){
+  for (j in 2:5){
+    if (i != j)    plot(fviz_pca_ind(pca, axes = c(i, j), col.ind = as.factor(clusters$cluster)))
+  }
+}
+```
+
 ```{r}
 fviz_cluster(list(data = df_clusters, cluster = clusters$cluster))
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==5,]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==1,]
 ```
 
 
@@ -352,7 +379,8 @@ for (metodo in metodos){
 ```
 
 ```{r}
-clusters_jerarquico <- cutree(clustering_jerarquico, h = 12)
+clustering_jerarquico <- hclust(dist(df_clusters, method = "mahalanobis"), method = "ward.D2")
+clusters_jerarquico <- cutree(clustering_jerarquico, k = 7)
 
 clustered_jerarquico <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico)
 
@@ -367,5 +395,5 @@ plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "s
 
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER==1, ]
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 ```

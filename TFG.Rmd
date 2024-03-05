@@ -433,5 +433,16 @@ plot_ly(data = plot_clusters_jerarquico_euclideo, x = ~CP1, y = ~CP2, z = ~CP3, 
 ```
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 1, ]
 ```
+
+
+```{r}
+result <- ordered_clustered_jerarquico_euclideo %>%
+  group_by(Equipo, Ano, CLUSTER) %>%
+  summarise(Num_Jugadores = n())
+
+# Muestra el resultado
+print(result)
+```
+

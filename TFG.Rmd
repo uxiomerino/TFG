@@ -339,7 +339,7 @@ fviz_nbclust(df_clusters, kmeans, method = "wss", k.max = max(k_values))
 ```
 
 ```{r}
-clusters <- kmeans(df_clusters, centers = 5)
+clusters <- kmeans(df_clusters, centers = 7)
 
 clustered_data <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, CLUSTER = clusters$cluster, Equipo = df_union$Equipo)
 
@@ -364,7 +364,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==1,]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==2, ]
 ```
 
 
@@ -419,7 +419,7 @@ for (metodo in metodos){
 
 ```{r}
 clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D2")
-clusters_jerarquico_euclideo <- cutree(clustering_jerarquico, h = 28)
+clusters_jerarquico_euclideo <- cutree(clustering_jerarquico, h = 33)
 
 clustered_jerarquico_euclideo <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico_euclideo)
 
@@ -438,11 +438,15 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 
 
 ```{r}
-result <- ordered_clustered_jerarquico_euclideo %>%
+clusters_equipos <- ordered_clustered_jerarquico %>%
   group_by(Equipo, Ano, CLUSTER) %>%
   summarise(Num_Jugadores = n())
 
 # Muestra el resultado
-print(result)
+print(clusters_equipos)
+```
+
+```{r}
+clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 ```
 

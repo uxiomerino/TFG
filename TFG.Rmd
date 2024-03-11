@@ -179,7 +179,7 @@ for (i in 1:5){
   topN[[i]] <- data.frame(Indiv = indiv, Año = año, Score = scores)
 }
 
-topN[2]
+topN[1]
 ```
 
 ```{r}
@@ -364,7 +364,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==2, ]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==1, ]
 ```
 
 

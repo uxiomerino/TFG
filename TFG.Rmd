@@ -307,7 +307,7 @@ APLICACIÓN INDIVIDUAL OBRADOIRO:
 df_obradoiro <- df_dist[df_dist$Equipo == "Monbus Obradoiro" & df_dist$Año == "2023/24", ]
 
 for (i in df_obradoiro$Xogador){
-  c <- buscar_xogador(df_obradoiro, i)
+  c <- buscar_xogador(df_dist, i, equipo = "Monbus Obradoiro", año = "2023/24")
   c2 <- buscar_xogador(df_dist, i, año = "2023/24")
   cat("O xogador máis similar a ", i, " no equipo é ", c[1], "cunha distancia de", as.numeric(c[2]),
       "\nEn toda a BD é ", c2[1], "cunha distancia de", as.numeric(c2[2]),"\n\n")
@@ -440,7 +440,7 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 ```{r}
 clusters_equipos <- ordered_clustered_jerarquico %>%
   group_by(Equipo, Ano, CLUSTER) %>%
-  summarise(Num_Jugadores = n())
+  summarise(nXogadores = n())
 
 # Muestra el resultado
 print(clusters_equipos)
@@ -448,5 +448,9 @@ print(clusters_equipos)
 
 ```{r}
 clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
+```
+
+```{r}
+ordered_clustered_data[ordered_clustered_data$Equipo == "Monbus Obradoiro" & ordered_clustered_data$Ano == "2023/24", ]
 ```
 

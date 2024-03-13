@@ -21,11 +21,6 @@ load("df3.RData")
 df <- df[df$Mins >= 100 & df$Partidos >= 7, ]
 str(df)
 df$Año <- rep("2022/23", dim(df)[1])
-# 
-# df2 <- df2[df2$Mins >= 45 & df2$Partidos >= 3, ]
-# df2
-# df2$Competicion <- rep("EuroCup", dim(df2)[1])
-# df2$Año <- rep("2022/23", dim(df2)[1])
 
 df3 <- df3[df3$Mins >= 50 & df3$Partidos >= 4, ]
 df3$Año <- rep("2023/24", dim(df3)[1])
@@ -179,7 +174,7 @@ for (i in 1:5){
   topN[[i]] <- data.frame(Indiv = indiv, Año = año, Score = scores)
 }
 
-topN[1]
+topN[5]
 ```
 
 ```{r}
@@ -364,7 +359,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==1, ]
+ordered_clustered_data[ordered_clustered_data$CLUSTER==7, ]
 ```
 
 
@@ -405,7 +400,7 @@ for (i in 1:4){
 
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 3, ]
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 ```
 
 CLUSTERING JERARQUICO: distancia euclídea
@@ -452,5 +447,9 @@ clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 
 ```{r}
 ordered_clustered_data[ordered_clustered_data$Equipo == "Monbus Obradoiro" & ordered_clustered_data$Ano == "2023/24", ]
+```
+
+```{r}
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico$Ano == "2023/24", ]
 ```
 

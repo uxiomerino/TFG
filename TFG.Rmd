@@ -322,50 +322,15 @@ colnames(dists) <- df_obradoiro$Xogador
 dists
 ```
 
-
-
-CLUSTERING NO JERARQUICO:
+CLUSTERING JERARQUICO: distancia de mahalanobis
 ```{r}
 library(cluster)
 
 df_clusters <- df_pca[, -which(names(df_pca) %in% c("Xogador", "Equipo", "Año"))]
 df_clusters <- scale(df_clusters)
-
-k_values <- 1:10
-fviz_nbclust(df_clusters, kmeans, method = "wss", k.max = max(k_values))
-```
-
-```{r}
-clusters <- kmeans(df_clusters, centers = 7)
-
-clustered_data <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, CLUSTER = clusters$cluster, Equipo = df_union$Equipo)
-
-ordered_clustered_data <- clustered_data[order(clustered_data$CLUSTER), ]
-
-plot_clusters <- data.frame(Xogador = clustered_data$Xogador, Ano = clustered_data$Ano, CLUSTER = clustered_data$CLUSTER, CP1 = pca$x[, 1], CP2 = pca$x[, 2], CP3 = pca$x[, 3])
-plot_clusters$NAME_CLUSTER <- paste("Nome: ", plot_clusters$Xogador, "<br>Ano: ", plot_clusters$Ano, "<br>Cluster: ", plot_clusters$CLUSTER)
-plot_ly(data = plot_clusters, x = ~CP1, y = ~CP2, z = ~CP3, type = "scatter3d", mode = "markers", marker = list(size = 3, color = ~CLUSTER), text = ~NAME_CLUSTER) %>%
-  add_markers() %>%
-  layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
-```
-
-```{r}
-for (i in 1:4){
-  for (j in 2:5){
-    if (i != j)    {
-      plot(fviz_pca_ind(pca, axes = c(i, j), col.ind = as.factor(clusters$cluster)))
-      print(fviz_cluster(list(data = df_clusters, cluster = clusters$cluster), axes = c(i, j)))
-    }
-  }
-}
-```
-
-```{r}
-ordered_clustered_data[ordered_clustered_data$CLUSTER==7, ]
 ```
 
 
-CLUSTERING JERARQUICO: distancia de mahalanobis
 ```{r}
 metodos = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
 for (metodo in metodos){
@@ -376,7 +341,7 @@ for (metodo in metodos){
 
 ```{r}
 clustering_jerarquico <- hclust(dist(df_clusters, method = "mahalanobis"), method = "ward.D")
-clusters_jerarquico <- cutree(clustering_jerarquico, h = 33)
+clusters_jerarquico <- cutree(clustering_jerarquico, k = 6)
 
 clustered_jerarquico <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico)
 
@@ -388,6 +353,17 @@ plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "s
   add_markers() %>%
   layout(scene = list(legend = list(orientation = "h", x = 0.5, y = 1.1)))
 ```
+
+```{r}
+plot(clustering_jerarquico)
+rect.hclust(clustering_jerarquico, k = 6)
+
+library(dendextend)
+dend <- as.dendrogram(clustering_jerarquico)
+dend_colored <- color_branches(dend, k = 6)
+plot(dend_colored)
+```
+
 
 ```{r}
 for (i in 1:4){
@@ -402,7 +378,7 @@ for (i in 1:4){
 
 
 ```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 6, ]
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 ```
 
 CLUSTERING JERARQUICO: distancia euclídea
@@ -415,8 +391,8 @@ for (metodo in metodos){
 ```
 
 ```{r}
-clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D2")
-clusters_jerarquico_euclideo <- cutree(clustering_jerarquico, h = 33)
+clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D")
+clusters_jerarquico_euclideo <- cutree(clustering_jerarquico_euclideo, k = 6)
 
 clustered_jerarquico_euclideo <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico_euclideo)
 
@@ -430,8 +406,42 @@ plot_ly(data = plot_clusters_jerarquico_euclideo, x = ~CP1, y = ~CP2, z = ~CP3, 
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 1, ]
+plot(clustering_jerarquico_euclideo)
+rect.hclust(clustering_jerarquico_euclideo, k = 6)
+
+library(dendextend)
+dend <- as.dendrogram(clustering_jerarquico_euclideo)
+dend_colored <- color_branches(dend, k = 6)
+plot(dend_colored)
 ```
+
+```{r}
+for (i in 1:4){
+  for (j in 2:5){
+    if (i != j)    {
+      plot(fviz_pca_ind(pca, axes = c(i, j), col.ind = as.factor(clustered_jerarquico_euclideo$CLUSTER)))
+      print(fviz_cluster(list(data = df_clusters, cluster = clustered_jerarquico_euclideo$CLUSTER), axes = c(i, j)))
+    }
+  }
+}
+```
+
+```{r}
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 2, ]
+```
+
+
+
+
+ANALISIS DOS PERFIS DOS EQUIPOS
+```{r}
+ordered_clustered_jerarquico[ordered_clustered_jerarquico$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico$Ano == "2023/24", ]
+```
+
+```{r}
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
+```
+
 
 
 ```{r}
@@ -446,12 +456,3 @@ print(clusters_equipos)
 ```{r}
 clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 ```
-
-```{r}
-ordered_clustered_data[ordered_clustered_data$Equipo == "Monbus Obradoiro" & ordered_clustered_data$Ano == "2023/24", ]
-```
-
-```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico$Ano == "2023/24", ]
-```
-

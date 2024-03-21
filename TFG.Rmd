@@ -376,7 +376,6 @@ for (i in 1:4){
 }
 ```
 
-
 ```{r}
 ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 ```
@@ -456,3 +455,26 @@ print(clusters_equipos)
 ```{r}
 clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 ```
+
+
+
+
+
+
+MODELOS DE REGRESIÓN:
+
+```{r}
+setwd("~/GCED/TFG/Datos")
+
+df_combinaciones <- read.csv("boxscore_combis_obra.csv")
+df_combinaciones$Ano <- rep("2022/23", length(df_combinaciones$Equipos))
+```
+
+
+```{r}
+tail(df_combinaciones)
+```
+
+
+
+

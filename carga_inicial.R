@@ -37,7 +37,7 @@ df$Xogador <- tfg$Xogadores
 df$Mins <- tfg$Minutos
 df$PPP <- tfg$Media
 df$PPMin <- tfg1$Media
-df$PPP <- tfg2$Media
+df$PPPos <- tfg2$Media
 df$Partidos <- bs$Partidos
 df$'%T2' <- bs$'2P%...25'
 df$'%T3' <- bs$'3P%...26'
@@ -74,87 +74,6 @@ df$"LE" <- LE$Media
 save(df, file="df.RData")
 
 
-
-df2 <- data.frame(matrix(ncol = 0, nrow = 253))
-# EuroCup 2023/24
-tfg <- read_csv("PPP_EC.csv")
-tfg1 <- read_csv("PPMin_EC.csv")
-tfg2 <- read_csv("PPPos_EC.csv")
-boxscore <- read_csv("boxscore_EC.csv")
-bs <- boxscore[, c(3, 23:40)]
-PPT <- read_csv("PPTC_EC.csv")
-PPT2 <- read_csv("PPT2_EC.csv")
-PPT3 <- read_csv("PPT3_EC.csv")
-TCInt <- read_csv("%TC_EC.csv")
-T2Inte <- read_csv("%T2_EC.csv")
-T3Int <- read_csv("%T3_EC.csv")
-Ptos <- read_csv("%Ptos_EC.csv")
-Ptos2 <- read_csv("%2Ptos_EC.csv")
-Ptos3 <- read_csv("%3Ptos_EC.csv")
-TAsist <- read_csv("%TAsist_EC.csv")
-T2Asist <- read_csv("%T2Asist_EC.csv")
-T3Asist <- read_csv("%T3Asist_EC.csv")
-TL_Min <- read_csv("TL_Min_EC.csv")
-TL_F <- read_csv("TL_F_EC.csv")
-RebTot <- read_csv("%RebTot_EC.csv")
-RebOf <- read_csv("%RebOf_EC.csv")
-RebDef <- read_csv("%RebDef_EC.csv")
-Asist <- read_csv("%Asist_EC.csv")
-TO <- read_csv("%TO_EC.csv")
-LE <- read_csv("LE_EC.csv")
-
-df2$Equipo <- tfg$Equipo
-df2$Xogador <- tfg$Xogadores
-df2$Mins <- tfg$Minutos
-df2$PPP <- tfg$Media
-df2$PPMin <- tfg1$Media
-df2$PPP <- tfg2$Media
-df2$Partidos <- bs$Partidos
-df2$'%T2' <- bs$'2P%...25'
-df2$'%T3' <- bs$'3P%...26'
-df2$'%TL' <- bs$'TL%...29'
-df2$APP <- bs$As...32 / bs$Partidos
-df2$PerPP <- bs$Pér...33 / bs$Partidos
-df2$RecPP <- bs$Rec...34 / bs$Partidos
-df2$TReaPP <- bs$T.Rea...35 / bs$Partidos
-df2$TRecPP <- bs$T.Rec...36 / bs$Partidos
-df2$FRec <- bs$F.Rea...37 / bs$Partidos
-df2$FRea <- bs$F.Rec...38 / bs$Partidos
-df2$Val <- bs$Val...40 / bs$Partidos
-df2$PPTC <- PPT$Media
-df2$PPT2 <- PPT2$Media  
-df2$PPT3 <- PPT3$Media  
-df2$'%TCInt' <- TCInt$Media
-df2$'%T2Int' <- T2Inte$Media
-df2$'%T3Int' <- T3Int$Media
-df2$'%Ptos' <- Ptos$Media
-df2$"%Ptos2" <- Ptos2$Media
-df2$"%Ptos3" <- Ptos3$Media
-df2$"%TAsist" <- TAsist$Media
-df2$"%T2Asist" <- T2Asist$Media
-df2$"%T3Asist" <- T3Asist$Media
-df2$"TL/Min" <- TL_Min$Media
-df2$"TL/F" <- TL_F$Media
-df2$"%RTot" <- RebTot$Media
-df2$"%ROf" <- RebOf$Media
-df2$"%RDef" <- RebDef$Media
-df2$"%Asist" <- Asist$Media
-df2$"%TO" <- TO$Media
-df2$"LE" <- LE$Media
-
-save(df2, file="df2.RData")
-
-
-
-
-
-
-
-
-
-
-
-
 df3 <- data.frame(matrix(ncol = 0, nrow = 284))
 # LigaACB 2023/24
 PPP2 <- read_csv("PPP2.csv")
@@ -188,6 +107,7 @@ df3$Xogador <- PPP2$Xogadores
 df3$Mins <- PPP2$Minutos
 df3$PPP <- PPP2$Media
 df3$PPMin <- PPMin2$Media
+df3$PPPos <- PPPos2$Media
 df3$Partidos <- bs2$Partidos
 df3$'%T2' <- bs2$'2P%...25'
 df3$'%T3' <- bs2$'3P%...26'
@@ -223,7 +143,8 @@ df3$"LE" <- LE2$Media
 
 save(df3, file="df3.RData")
 
-
+colnames(df)
+colnames(df3)
 
 
 setwd("~/GCED/TFG/Datos")

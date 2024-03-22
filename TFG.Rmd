@@ -433,9 +433,6 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 
 
 ANALISIS DOS PERFIS DOS EQUIPOS
-```{r}
-ordered_clustered_jerarquico[ordered_clustered_jerarquico$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico$Ano == "2023/24", ]
-```
 
 ```{r}
 ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
@@ -444,7 +441,7 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equi
 
 
 ```{r}
-clusters_equipos <- ordered_clustered_jerarquico %>%
+clusters_equipos <- ordered_clustered_jerarquico_euclideo %>%
   group_by(Equipo, Ano, CLUSTER) %>%
   summarise(nXogadores = n())
 
@@ -530,14 +527,50 @@ df_combinaciones$Cluster3 <- cluster_3
 df_combinaciones$Cluster4 <- cluster_4
 df_combinaciones$Cluster5 <- cluster_5
 
+df_combinaciones$Cluster1 <- as.factor(df_combinaciones$Cluster1)
+df_combinaciones$Cluster2 <- as.factor(df_combinaciones$Cluster2)
+df_combinaciones$Cluster3 <- as.factor(df_combinaciones$Cluster3)
+df_combinaciones$Cluster4 <- as.factor(df_combinaciones$Cluster4)
+df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
+
 df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
 
+```{r}
+df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
+df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
+colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
 
+for (i in (1:nrow(df_parcial))){
+  clusters_quinteto <- numeric(6)
+  for (j in (1:ncol(df_parcial))){
+    if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
+    if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
+    if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
+    if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
+    if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
+    if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+  }
+   df_quintetos[i, ] <- clusters_quinteto
+}
+
+df_quintetos$Dif <- df_combinaciones$Dif
+df_quintetos$C1 <- as.factor(df_quintetos$C1)
+df_quintetos$C2 <- as.factor(df_quintetos$C2)
+df_quintetos$C3 <- as.factor(df_quintetos$C3)
+df_quintetos$C4 <- as.factor(df_quintetos$C4)
+df_quintetos$C5 <- as.factor(df_quintetos$C5)
+df_quintetos$C6 <- as.factor(df_quintetos$C6)
+head(df_quintetos)
+
+```
 
 ```{r}
-axuste <- lm(Dif~Cluster1*Cluster2*Cluster3*Cluster4*Cluster5, data = df_combinaciones)
+axuste <- lm(Dif~C1+C2+C3+C4+C5+C6, data = df_quintetos)
 summary(axuste)
 ```
 
-
+```{r}
+axuste1 <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+summary(axuste1)
+```

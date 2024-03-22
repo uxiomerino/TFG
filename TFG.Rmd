@@ -495,7 +495,8 @@ cluster_2 <- c()
 cluster_3 <- c()
 cluster_4 <- c()
 cluster_5 <- c()
-c <- 0
+
+indices <- c()
 
 for (i in 1:nrow(df_combinaciones)) {
   quinteto <- df_combinaciones[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
@@ -514,13 +515,14 @@ for (i in 1:nrow(df_combinaciones)) {
     cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
     cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
     cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
-    c <- c + 1
   } else {
     # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
-    df_combinaciones <- df_combinaciones[-i, ]
+    indices <- c(indices, i)
   }
 }
-print(c)
+
+
+df_combinaciones <- df_combinaciones[-indices, ]
 
 df_combinaciones$Cluster1 <- cluster_1
 df_combinaciones$Cluster2 <- cluster_2
@@ -533,5 +535,9 @@ df_combinaciones[which.min(df_combinaciones$Minutos), ]
 
 
 
+```{r}
+axuste <- lm(Dif~Cluster1*Cluster2*Cluster3*Cluster4*Cluster5, data = df_combinaciones)
+summary(axuste)
+```
 
 

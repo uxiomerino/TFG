@@ -468,12 +468,69 @@ setwd("~/GCED/TFG/Datos")
 
 df_combinaciones <- read.csv("boxscore_combis_obra.csv")
 df_combinaciones$Ano <- rep("2022/23", length(df_combinaciones$Equipos))
+
+# Sobrescribir el dataframe original con solo las columnas que queremos conservar
+df_combinaciones <- df_combinaciones[, c("Equipos", "Xogadores", "Minutos", "Partidos", "Dif")]
+head(df_combinaciones)
 ```
 
 
 ```{r}
-tail(df_combinaciones)
+library(tidyr)
+df_combinaciones <- separate(df_combinaciones, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+head(df_combinaciones)
 ```
+
+```{r}
+df_combinaciones[which.max(df_combinaciones$Minutos), ]
+df_combinaciones[which.max(df_combinaciones$Dif), ]
+df_combinaciones[which.min(df_combinaciones$Minutos), ]
+```
+
+
+```{r}
+xogadores_validos <- unique(df_union[df_union$Equipo == "Monbus Obradoiro" & df_union$Año == "2022/23", "Xogador"])
+cluster_1 <- c()
+cluster_2 <- c()
+cluster_3 <- c()
+cluster_4 <- c()
+cluster_5 <- c()
+c <- 0
+
+for (i in 1:nrow(df_combinaciones)) {
+  quinteto <- df_combinaciones[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
+  xogadores_quinteto <- unlist(quinteto)
+  
+  if (all(xogadores_quinteto %in% xogadores_validos)) {
+    # Todos los jugadores de la fila están en la lista de jugadores válidos
+    clusters_quinteto <- c()
+    for (xogador in xogadores_quinteto) {
+      cluster <- ordered_clustered_jerarquico_euclideo$CLUSTER[ordered_clustered_jerarquico_euclideo$Xogador == xogador 
+                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2022/23"]
+      clusters_quinteto <- c(clusters_quinteto, cluster)
+    }
+    cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
+    cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
+    cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
+    cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
+    cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
+    c <- c + 1
+  } else {
+    # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
+    df_combinaciones <- df_combinaciones[-i, ]
+  }
+}
+print(c)
+
+df_combinaciones$Cluster1 <- cluster_1
+df_combinaciones$Cluster2 <- cluster_2
+df_combinaciones$Cluster3 <- cluster_3
+df_combinaciones$Cluster4 <- cluster_4
+df_combinaciones$Cluster5 <- cluster_5
+
+df_combinaciones[which.min(df_combinaciones$Minutos), ]
+```
+
 
 
 

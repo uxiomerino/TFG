@@ -316,8 +316,8 @@ buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro", año = "2
 
 ```{r}
 # Exemplo de uso da funcion busqueda_xogadores_cercanos
-busqueda_xogadores_cercanos(df_dist, "22 EDY TAVARES", distancia = 5, año = "2023/24")[1]
-busqueda_xogadores_cercanos(df_dist, "13 SERGIO RODRIGUEZ", distancia = 5)[1]
+busqueda_xogadores_cercanos(df_dist, "22 EDY TAVARES", distancia = 5, año = "2022/23")[1]
+busqueda_xogadores_cercanos(df_dist, "0 MARKUS HOWARD", distancia = 5)[1]
 ```
 
 # APLICACIÓN INDIVIDUAL OBRADOIRO:

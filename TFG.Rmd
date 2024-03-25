@@ -226,10 +226,9 @@ plot
 ```
 
 
-DISTANCIAS:
+## DISTANCIAS:
 
 ```{r}
-# DF para distancias
 library(proxy)
 
 df_dist <- data.frame(pca$x[, 1:5])
@@ -239,7 +238,8 @@ df_dist$Año <- df_pca$Año
 ```
 
 ```{r}
-# funcions
+# UTILIDADES DO PCA
+
 distancia <- function(df, x1, ano1, x2, ano2, method = "Euclidean") {
   xogador1 <- df[df$Xogador == x1 & df$Año == ano1, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
   xogador2 <- df[df$Xogador == x2 & df$Año == ano2, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
@@ -250,15 +250,16 @@ distancia <- function(df, x1, ano1, x2, ano2, method = "Euclidean") {
 }
 
 buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Euclidean"){
+  
+  df <- df[df$Año == año, ]
   coords1 <- df[df$Xogador == x1, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
   if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
-  if (!is.na(año)) df <- df[df$Año == año, ]
+  
   dist_min <- Inf
   
   for (i in 1:dim(df)[1]){
     x2 <- df[i, "Xogador"]
-    coords2 <- df[df$Xogador == x2, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
-    if (dim(coords1)[1] > 1) coords1 <- coords1[2, ]
+    coords2 <- df[i, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
     if (x2 != x1){
       dist <- proxy::dist(coords1, coords2, method = method)
       if (dist < dist_min){
@@ -269,45 +270,65 @@ buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Eucl
   }
   return (c(xogador_final, dist_min))
 }
+
+busqueda_xogadores_cercanos <- function(df, x1, distancia, equipo = NA, año = "2023/24", method = "Euclidean"){
+  
+  if (!is.na(año)) df <- df[df$Año == año, ]
+  coords1 <- df[df$Xogador == x1, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
+  if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
+  
+  xogadores <- c()
+  total <- c()
+  
+  for (i in 1:dim(df)[1]){
+    x2 <- df[i, "Xogador"]
+    coords2 <- df[i, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
+    if (x2 != x1){
+      dist <- proxy::dist(coords1, coords2, method = method)
+      if (dist < distancia){
+        xogadores <- c(xogadores, x2)
+        total <- c(total, list(x2, dist))
+      }
+    }
+  }
+  return (list(xogadores, total))
+}
 ```
 
 
 Exemplos:
 ```{r}
-# Exemplo de uso funcion sim
-xogador1 <- '22 EDY TAVARES'
-xogador2 <- '13 SERGIO RODRIGUEZ'
-xogador3 <- '0 NIGEL WILLIAMS-GOSS'
-xogador4 <- '17 VINCENT POIRIER'
+# Exemplo de uso funcion distancia
 
-dist1 <- distancia(df_dist, xogador1, "2023/24", xogador2, "2023/24") 
-dist1 # Tavares e Sergio Rodr
-dist2 <- distancia(df_dist, xogador1, "2023/24", xogador3, "2022/23") 
-dist2 # Tavares e Williams-Goss
-dist3 <- distancia(df_dist, xogador3, "2022/23", xogador2, "2022/23") 
-dist3 # Sergio Rodr e Williams-Goss
-dist4 <- distancia(df_dist, xogador1,"2023/24", xogador4, "2023/24") 
-dist4 # Tavares e Poirier
+distancia(df_dist, '22 EDY TAVARES', "2023/24", '13 SERGIO RODRIGUEZ', "2023/24")
+distancia(df_dist, '22 EDY TAVARES', "2023/24", '0 NIGEL WILLIAMS-GOSS', "2022/23")
+distancia(df_dist, '0 NIGEL WILLIAMS-GOSS', "2022/23", '13 SERGIO RODRIGUEZ', "2022/23")
+distancia(df_dist, '22 EDY TAVARES',"2023/24", '17 VINCENT POIRIER', "2023/24") 
 ```
 
 ```{r}
 # Exemplo de uso funcion buscar_xogador
-x1 <- "22 EDY TAVARES"
-buscar_xogador(df_dist, x1, año = "2023/24")
-buscar_xogador(df_dist, x1, año = "2022/23")
-buscar_xogador(df_dist, x1, equipo = "Monbus Obradoiro")
-buscar_xogador(df_dist, x1, equipo = "Monbus Obradoiro", año = "2022/23")
+buscar_xogador(df_dist, "22 EDY TAVARES", año = "2023/24")
+buscar_xogador(df_dist, "22 EDY TAVARES", año = "2022/23")
+buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro")
+buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro", año = "2022/23")
 ```
 
-APLICACIÓN INDIVIDUAL OBRADOIRO:
+```{r}
+# Exemplo de uso da funcion busqueda_xogadores_cercanos
+busqueda_xogadores_cercanos(df_dist, "22 EDY TAVARES", distancia = 5, año = "2023/24")[1]
+busqueda_xogadores_cercanos(df_dist, "13 SERGIO RODRIGUEZ", distancia = 5)[1]
+```
+
+# APLICACIÓN INDIVIDUAL OBRADOIRO:
 ```{r}
 df_obradoiro <- df_dist[df_dist$Equipo == "Monbus Obradoiro" & df_dist$Año == "2023/24", ]
 
 for (i in df_obradoiro$Xogador){
   c <- buscar_xogador(df_dist, i, equipo = "Monbus Obradoiro", año = "2023/24")
   c2 <- buscar_xogador(df_dist, i, año = "2023/24")
-  cat("O xogador máis similar a ", i, " no equipo é ", c[1], "cunha distancia de", as.numeric(c[2]),
-      "\nEn toda a BD é ", c2[1], "cunha distancia de", as.numeric(c2[2]),"\n\n")
+  cat("O xogador máis similar a", i, "no equipo é", c[1], "cunha distancia de", as.numeric(c[2]),
+      "\nEn toda a BD é", c2[1], "cunha distancia de", as.numeric(c2[2]),"\n\n")
 }
 ```
 

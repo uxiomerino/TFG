@@ -46,7 +46,7 @@ summary(df_union)
 df_union[df_union$PPPos < 0, ] # Valores non plausibeis
 df_union[df_union$'%Asist' < 0, ] # Valores non plausibeis
 
-df_union[df_union$'%Asist' < 0, '%Asist'] <- 0
+df_union[df_union$'%TAsist' < 0, '%Asist'] <- 0
 df_union[df_union$PPP < 0, 'PPPos'] <- 0 
 ```
 
@@ -150,7 +150,7 @@ sort(loadings[, 4], decreasing = TRUE)
 barplot(loadings[, 4], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 4",
         xlab = "Variable", ylab = "Loading en Dimensión 4", col = "skyblue", border = "black")
 ```
-+: Moito volume de tiros (pero non asistidos), TRec, anotacion, LE (variación dos compañeiros, moitos minutos)
++: Moito volume de tiros (non asistidos), TRec, anotacion, LE (variación dos compañeiros, moitos minutos)
 -: Asistencias, perdidas, eficiencia anotadora, recuperacions
 En positivo, tirador que destaca pola súa anotación pero pouca eficiencia porque asume moitos tiros
 En negativo, manexador de balón con boa eficiencia anotadora e destacado en asistencias

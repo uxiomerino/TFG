@@ -2,6 +2,7 @@ library(readr)
 library(dplyr)
 library(tidyr)
 
+setwd("~/GCED/TFG/Datos")
 
 df <- data.frame(matrix(ncol = 0, nrow = 330))
 # Liga ACB 2023/24
@@ -143,5 +144,17 @@ df3$"LE" <- LE2$Media
 
 save(df3, file="df3.RData")
 
-colnames(df)
-colnames(df3)
+
+
+
+quintetos1 <- read_csv("quintetos1.csv")
+quintetos2 <- read_csv("quintetos2.csv")
+quintetos <- rbind(quintetos2, quintetos1)
+head(quintetos)
+quintetos$Diferencia <- (quintetos$`Valor Equipo` - quintetos$`Valor Rival`) / quintetos$Minutos
+quintetos <- quintetos[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
+head(quintetos)
+save(quintetos, file = "quintetos.RData")
+
+
+

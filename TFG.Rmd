@@ -523,7 +523,7 @@ for (i in 1:nrow(df_combinaciones)) {
     clusters_quinteto <- c()
     for (xogador in xogadores_quinteto) {
       cluster <- ordered_clustered_jerarquico_euclideo$CLUSTER[ordered_clustered_jerarquico_euclideo$Xogador == xogador 
-                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2022/23"]
+                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2023/24"]
       clusters_quinteto <- c(clusters_quinteto, cluster)
     }
     cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
@@ -536,7 +536,6 @@ for (i in 1:nrow(df_combinaciones)) {
     # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
     indices <- c(indices, i)
   }
-  print(clusters_quinteto)
 }
 
 
@@ -558,6 +557,11 @@ df_combinaciones[which.min(df_combinaciones$Diferencia), ]
 ```
 
 ```{r}
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos >= 0.35, ]
+```
+
+
+```{r}
 df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
 df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
 colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
@@ -575,7 +579,7 @@ for (i in (1:nrow(df_parcial))){
    df_quintetos[i, ] <- clusters_quinteto
 }
 
-df_quintetos$Dif <- df_combinaciones$Dif
+df_quintetos$Dif <- df_combinaciones$Diferencia
 df_quintetos$C1 <- as.factor(df_quintetos$C1)
 df_quintetos$C2 <- as.factor(df_quintetos$C2)
 df_quintetos$C3 <- as.factor(df_quintetos$C3)
@@ -583,7 +587,6 @@ df_quintetos$C4 <- as.factor(df_quintetos$C4)
 df_quintetos$C5 <- as.factor(df_quintetos$C5)
 df_quintetos$C6 <- as.factor(df_quintetos$C6)
 head(df_quintetos)
-
 ```
 
 ```{r}

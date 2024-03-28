@@ -362,7 +362,7 @@ for (metodo in metodos){
 
 ```{r}
 clustering_jerarquico <- hclust(dist(df_clusters, method = "mahalanobis"), method = "ward.D")
-clusters_jerarquico <- cutree(clustering_jerarquico, k = 6)
+clusters_jerarquico <- cutree(clustering_jerarquico, h = 30)
 
 clustered_jerarquico <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico)
 
@@ -482,32 +482,30 @@ clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 MODELOS DE REGRESIÓN:
 
 ```{r}
-setwd("~/GCED/TFG/Datos")
+load("~/GCED/TFG/Datos/quintetos.RData")
+quintetos$Ano <- rep("2023/24", length(quintetos$Equipo))
 
-df_combinaciones <- read.csv("boxscore_combis_obra.csv")
-df_combinaciones$Ano <- rep("2022/23", length(df_combinaciones$Equipos))
-
-# Sobrescribir el dataframe original con solo las columnas que queremos conservar
-df_combinaciones <- df_combinaciones[, c("Equipos", "Xogadores", "Minutos", "Partidos", "Dif")]
-head(df_combinaciones)
+dim(quintetos)
+head(quintetos)
 ```
 
 
 ```{r}
 library(tidyr)
-df_combinaciones <- separate(df_combinaciones, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+df_combinaciones <- separate(quintetos, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+n_miss(df_combinaciones)
 head(df_combinaciones)
 ```
 
 ```{r}
 df_combinaciones[which.max(df_combinaciones$Minutos), ]
-df_combinaciones[which.max(df_combinaciones$Dif), ]
+df_combinaciones[which.max(df_combinaciones$Diferencia), ]
 df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
 
 
 ```{r}
-xogadores_validos <- unique(df_union[df_union$Equipo == "Monbus Obradoiro" & df_union$Año == "2022/23", "Xogador"])
+xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
 cluster_1 <- c()
 cluster_2 <- c()
 cluster_3 <- c()
@@ -533,10 +531,12 @@ for (i in 1:nrow(df_combinaciones)) {
     cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
     cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
     cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
+    
   } else {
     # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
     indices <- c(indices, i)
   }
+  print(clusters_quinteto)
 }
 
 
@@ -554,7 +554,7 @@ df_combinaciones$Cluster3 <- as.factor(df_combinaciones$Cluster3)
 df_combinaciones$Cluster4 <- as.factor(df_combinaciones$Cluster4)
 df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
 
-df_combinaciones[which.min(df_combinaciones$Minutos), ]
+df_combinaciones[which.min(df_combinaciones$Diferencia), ]
 ```
 
 ```{r}

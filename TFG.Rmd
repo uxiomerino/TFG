@@ -605,6 +605,7 @@ axuste <- lm(Dif~C1+C2+C3+C4+C5+C6, data = df_quintetos)
 summary(axuste)
 ```
 
+
 ```{r}
 axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
 summary(axuste_interaccions)

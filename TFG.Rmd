@@ -456,7 +456,7 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 
 
 
-ANALISIS DOS PERFIS DOS EQUIPOS
+## ANALISIS DOS PERFIS DOS EQUIPOS
 
 ```{r}
 ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
@@ -570,10 +570,13 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2, ]
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.27, ]
 head(df_combinaciones)
 ```
 
+```{r}
+summary(df_combinaciones$Minutos)
+```
 
 ```{r}
 df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
@@ -594,12 +597,6 @@ for (i in (1:nrow(df_parcial))){
 }
 
 df_quintetos$Dif <- df_combinaciones$Diferencia
-df_quintetos$C1 <- as.factor(df_quintetos$C1)
-df_quintetos$C2 <- as.factor(df_quintetos$C2)
-df_quintetos$C3 <- as.factor(df_quintetos$C3)
-df_quintetos$C4 <- as.factor(df_quintetos$C4)
-df_quintetos$C5 <- as.factor(df_quintetos$C5)
-df_quintetos$C6 <- as.factor(df_quintetos$C6)
 head(df_quintetos)
 ```
 
@@ -609,6 +606,6 @@ summary(axuste)
 ```
 
 ```{r}
-#axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
-#summary(axuste_interaccions)
+axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+summary(axuste_interaccions)
 ```

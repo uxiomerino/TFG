@@ -16,11 +16,11 @@ Funcionalidades do código a implementar ou correxir:
         * Análise dos perfís que ten o Obradoiro (en contraposición cos de outros equipos) *FEITO* <br>
         * Mellor agrupación: **CLUSTERING XERÁRQUICO con distancia euclídea**
   - **Punto 3: Regresión** : <br>
-        * Datos de quintetos de 22/23 listo, descargar e xuntar os datos da 23/24 <br>
-        * Buscar a configuración óptima de quintetos a través de modelo de regresión: <br>
-              - Interaccións son importantes, probar os modelos con elas e **entender ben os resultados** <br>
-              - Transformación de variables? <br>
-              - Selección de variables? <br>
-              - Probar **modelos non paramétricos** <br>
-        * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** <br>
-        * **Ter en conta o rival** a través dalgunha medida <br> 
+      * Datos de quintetos de 22/23 listo, descargar e xuntar os datos da 23/24 <br>
+      * Buscar a configuración óptima de quintetos a través de modelo de regresión: <br>
+          - Interaccións son importantes, probar os modelos con elas e **entender ben os resultados** <br>
+          - Transformación de variables? <br>
+          - Selección de variables? <br>
+          - Probar **modelos non paramétricos** <br>
+      * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** <br>
+      * **Ter en conta o rival** a través dalgunha medida <br> 

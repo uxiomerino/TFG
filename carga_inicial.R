@@ -150,11 +150,13 @@ save(df3, file="df3.RData")
 quintetos1 <- read_csv("quintetos1.csv")
 quintetos2 <- read_csv("quintetos2.csv")
 quintetos <- rbind(quintetos2, quintetos1)
-head(quintetos)
 quintetos$Diferencia <- (quintetos$`Valor Equipo` - quintetos$`Valor Rival`) / quintetos$Minutos
 quintetos <- quintetos[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
 head(quintetos)
 save(quintetos, file = "quintetos.RData")
 
-
-
+quintetos22_23 <- rbind(read_csv("quintetos22-23_1.csv"), read_csv("quintetos22-23_2.csv"))
+quintetos22_23$Diferencia <- quintetos22_23$`Valor Xogadores` - quintetos22_23$`Valor Rival`
+quintetos22_23 <- quintetos22_23[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
+head(quintetos22_23)
+save(quintetos22_23, file = "quintetos22-23.RData")

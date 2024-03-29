@@ -15,7 +15,6 @@ Carga de datos
 setwd("~/GCED/TFG/Datos")
 
 load("df.RData")
-# load("df2.RData") Eurocup
 load("df3.RData")
 
 df <- df[df$Mins >= 100 & df$Partidos >= 7, ]
@@ -176,7 +175,7 @@ for (i in 1:5){
   topN[[i]] <- data.frame(Indiv = indiv, Año = año, Score = scores)
 }
 
-topN[5]
+topN[2]
 ```
 
 ```{r}
@@ -191,7 +190,7 @@ for (i in 1:5){
   minN[[i]] <- data.frame(Indiv = indiv, Año = año, Score = scores)
 }
 
-minN[5]
+minN[2]
 ```
 
 ```{r}
@@ -343,12 +342,13 @@ colnames(dists) <- df_obradoiro$Xogador
 dists
 ```
 
-CLUSTERING JERARQUICO: distancia de mahalanobis
+## CLUSTERING JERARQUICO: distancia de mahalanobis
 ```{r}
 library(cluster)
 
 df_clusters <- df_pca[, -which(names(df_pca) %in% c("Xogador", "Equipo", "Año"))]
 df_clusters <- scale(df_clusters)
+summary(df_clusters)
 ```
 
 
@@ -401,7 +401,10 @@ for (i in 1:4){
 ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 ```
 
-CLUSTERING JERARQUICO: distancia euclídea
+
+
+
+## CLUSTERING JERARQUICO: distancia euclídea
 ```{r}
 metodos = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
 for (metodo in metodos){
@@ -447,7 +450,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 2, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 5, ]
 ```
 
 
@@ -479,20 +482,20 @@ clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
 
 
 
-MODELOS DE REGRESIÓN:
+## MODELOS DE REGRESIÓN:
 
 ```{r}
-load("~/GCED/TFG/Datos/quintetos.RData")
-quintetos$Ano <- rep("2023/24", length(quintetos$Equipo))
+load("~/GCED/TFG/Datos/quintetos22-23.RData")
+quintetos22_23$Ano <- rep("2022/23", length(quintetos22_23$Equipo))
 
-dim(quintetos)
-head(quintetos)
+dim(quintetos22_23)
+head(quintetos22_23)
 ```
 
 
 ```{r}
 library(tidyr)
-df_combinaciones <- separate(quintetos, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+df_combinaciones <- separate(quintetos22_23, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
 n_miss(df_combinaciones)
 head(df_combinaciones)
 ```
@@ -505,7 +508,7 @@ df_combinaciones[which.min(df_combinaciones$Minutos), ]
 
 
 ```{r}
-xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
+xogadores_validos <- unique(df_union[df_union$Año == "2022/23", "Xogador"])
 cluster_1 <- c()
 cluster_2 <- c()
 cluster_3 <- c()
@@ -523,7 +526,7 @@ for (i in 1:nrow(df_combinaciones)) {
     clusters_quinteto <- c()
     for (xogador in xogadores_quinteto) {
       cluster <- ordered_clustered_jerarquico_euclideo$CLUSTER[ordered_clustered_jerarquico_euclideo$Xogador == xogador 
-                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2023/24"]
+                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2022/23"]
       clusters_quinteto <- c(clusters_quinteto, cluster)
     }
     cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
@@ -552,12 +555,23 @@ df_combinaciones$Cluster2 <- as.factor(df_combinaciones$Cluster2)
 df_combinaciones$Cluster3 <- as.factor(df_combinaciones$Cluster3)
 df_combinaciones$Cluster4 <- as.factor(df_combinaciones$Cluster4)
 df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
+```
 
-df_combinaciones[which.min(df_combinaciones$Diferencia), ]
+
+
+## Análisis de la distribución de minutos para seleccionar el umbral
+```{r}
+summary(df_combinaciones$Minutos)
+
+hist(df_combinaciones$Minutos, prob = T, breaks = "FD", main = paste("Histograma dos minutos"))
+lines(density(df_combinaciones$Minutos), col = "blue", lwd = 2)
+
+length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot de minutos"))$out)
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos >= 0.35, ]
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2, ]
+head(df_combinaciones)
 ```
 
 
@@ -595,6 +609,6 @@ summary(axuste)
 ```
 
 ```{r}
-axuste1 <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
-summary(axuste1)
+#axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+#summary(axuste_interaccions)
 ```

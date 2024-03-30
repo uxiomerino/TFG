@@ -570,7 +570,7 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.27, ]
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.30, ]
 head(df_combinaciones)
 ```
 
@@ -612,22 +612,105 @@ summary(axuste_interaccions)
 ```
 
 ```{r}
+# Análisis de residuos
 library(car)
+library(MASS)
 
-plot(axuste_interaccions)
-plot(axuste_interaccions$residuals)
-t.test(axuste_interaccions$residuals, mu = 0)
-Box.test(axuste_interaccions$residuals)
-shapiro.test(axuste_interaccions$residuals)
-vif(axuste_interaccions)
+MSSR <- summary(axuste_interaccions)$sigma^2
+res <- residuals(axuste_interaccions)
+res.est <- res/sqrt(MSSR)
+res.stud <- studres(axuste_interaccions) 
+
+
+# standarizados vs studentizados
+plot(axuste_interaccions$fitted.values, res.est, 
+     type="p",col=4,pch=19, xlab="Axustados",ylab="Residuos", 
+     ylim=range(cbind(res.est,res.stud)))
+points(axuste_interaccions$fitted.values,res.stud, col=2,pch=17)
+legend("topleft",c("Estandarizados","Studentizados"),
+       pch=19,col=c(4,2),lty=c(-1,-1))
+
+
+scatter.smooth(axuste_interaccions$fit, res.est, main="Residuos ~ Axustados", 
+               xlab="Axustados",ylab="Residuos", pch = 21, 
+               bg = "green", cex.lab=1.5, cex=1.4, cex.main=1.5, 
+               lpars = list(col = "magenta", lwd = 3) )
+abline(h=0,lty=2,lwd=2)
+
+par(mfrow=c(2,2))
+# Histograma y ajuste normal
+hist(res.est, breaks="FD",freq=FALSE, main = "", xlab="Residuos", cex.lab=1.4, 
+     ylab = "Densidad", col = "lightblue", ylim=c(0,0.6))
+curve( dnorm(x), col="magenta", lwd=3, add=TRUE)
+etiquetas <- c("Histograma","Ajuste normal")
+legend("topright",etiquetas, lwd=2, col=c("lightblue","magenta"), 
+       lty=c(1,1), cex=1.3, inset=0.02, box.lty=0)
+# Diagrama de cajas
+boxplot(res.est, main = "", xlab="Residuos",
+        cex.lab=1.4, border = "blue", col= "lightblue", pch="+",
+        horizontal = TRUE, cex=3)
+
+plot(density(res.est, bw=0.4),main="",lwd=3,col="blue",
+     ylab="Densidad stimada residuos", cex.lab=1.4, cex.lab=1.4)
+polygon(density(res.est,bw=0.4), col="lightblue")
+curve( dnorm(x), col="magenta", lwd=3, add=TRUE)
+qqPlot(res.est)
+
+
+nortest::lillie.test(res.est)   # Prueba de Lilliefors 
+nortest::cvm.test(res.est)      # Prueba de Cramer Von-Mises
+nortest::ad.test(res.est)       # Prueba de Anderson-Darling
+shapiro.test(res.est)           # Prueba de Shapiro-Wilks
+moments::agostino.test(res.est) # Prueba de D'Agostino
+
+plot(axuste_interaccions, which=3)
+# H0: sigma^2=cte  vs H1: sigma^2!=cte
+# Test de Breusch-Pagan
+ncvTest(axuste_interaccions) 
+
+Box.test(res.est, lag = 5, type = "Ljung-Box")	   	 # Prueba de Ljung-Box 
 ```
 
 ```{r}
+library(randomForest)
+
+modelo_rf <- randomForest(Dif ~ C1*C2*C3*C4*C5*C6, data = df_quintetos)
+varImpPlot(modelo_rf)
+```
+
+```{r}
+library(rpart)
+
+# Entrenamiento del árbol de decisión
+modelo_arbol <- rpart(Dif ~ C1+C2+C3+C4+C5+C6, data = df_quintetos, method = "anova")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Axuste cos equipos:
+```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
-df_equipos
 
 axuste_victorias <- glm(Resultado ~ PPPos + PPT + PPT2 + PPT3 + TAsist + T2Asist + T3Asist + TL_Min + TL_F + RebTot + RebOf + RebDef + `%TL` + Asist + TO + Rec + TRea + FRea, data = df_equipos)
 summary(axuste_victorias)
+shapiro.test(resid(axuste_victorias))
+
+qqnorm(resid(axuste_victorias))
+qqline(resid(axuste_victorias))
+
+AIC(axuste_victorias)
+BIC(axuste_victorias)
 ```
 ```{r}
 plot(axuste_victorias)

@@ -2,7 +2,7 @@ library(readr)
 library(dplyr)
 library(tidyr)
 
-setwd("~/GCED/TFG/Datos")
+setwd("~/GCED/TFG/Datos/Intermedios")
 
 df <- data.frame(matrix(ncol = 0, nrow = 330))
 # Liga ACB 2023/24
@@ -160,3 +160,65 @@ quintetos22_23$Diferencia <- quintetos22_23$`Valor Xogadores` - quintetos22_23$`
 quintetos22_23 <- quintetos22_23[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
 head(quintetos22_23)
 save(quintetos22_23, file = "quintetos22-23.RData")
+
+
+
+
+
+
+
+
+
+# Liga ACB 2023/24 EQUIPOS
+PPP_Eq <- as.data.frame(read_csv("PPP_Eq.csv")[, c('Xornada', 'Valor Equipo', 'Valor Rival')])
+PPPos_Eq <- read_csv("PPPos_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+PPT_Eq <- read_csv("PPT_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+PPT2_Eq <- read_csv("PPT2_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+PPT3_Eq <- read_csv("PPT3_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+TAsist_Eq <- read_csv("%TAsist_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+T2Asist_Eq <- read_csv("%T2Asist_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+T3Asist_Eq <- read_csv("%T3Asist_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+TL_Min_Eq <- read_csv("TL_Min_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+TL_F_Eq <- read_csv("TL_F_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+RebTot_Eq <- read_csv("%Reb_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+RebOf_Eq <- read_csv("%RebOf_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+RebDef_Eq <- read_csv("%RebDef_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+boxscore <- read_csv("boxscore_Eq.csv")[, c('Xornada', 'Equipos', 'TL%...9', 'Pér...13', "As...12", 'Rec...14', 'T.Rea...15', 'F.Rea...17')]
+
+
+
+PPP_Eq <- PPP_Eq[PPP_Eq$Xornada != 0, ]
+PPP_Eq$Resultado <- PPP_Eq$`Valor Equipo` - PPP_Eq$`Valor Rival`
+df_equipos <- PPP_Eq[, c('Xornada','Resultado')]
+
+df_equipos[df_equipos$Resultado > 0, 'Resultado'] <- 1
+df_equipos[df_equipos$Resultado < 0, 'Resultado'] <- 0
+
+df_equipos$PPPos <- PPPos_Eq[PPPos_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$PPT <- PPT_Eq[PPT_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$PPT2 <- PPT2_Eq[PPT2_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$PPT3 <- PPT3_Eq[PPT3_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$TAsist <- TAsist_Eq[TAsist_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$T2Asist <- T2Asist_Eq[T2Asist_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$T3Asist <- T3Asist_Eq[T3Asist_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$TL_Min <- TL_Min_Eq[TL_Min_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$TL_F <- TL_F_Eq[TL_F_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$RebTot <- RebTot_Eq[RebTot_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$RebOf <- RebOf_Eq[RebOf_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$RebDef <- RebDef_Eq[RebDef_Eq$Xornada != 0, ]$`Valor Equipo`
+
+boxscore <- boxscore[boxscore$Xornada != 0, ]
+boxscore <- boxscore[order(boxscore$Equipos), ]
+
+df_equipos$'%TL' <- boxscore$`TL%...9`
+df_equipos$Asist <- boxscore$As...12
+df_equipos$TO <- boxscore$Pér...13
+df_equipos$Rec <- boxscore$Rec...14
+df_equipos$TRea <- boxscore$T.Rea...15
+df_equipos$FRea <- boxscore$F.Rea...17
+
+head(df_equipos)
+
+save(df_equipos, file = "df_equipos.RData")
+
+

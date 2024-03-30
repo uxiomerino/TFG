@@ -450,7 +450,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER== 5, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 2, ]
 ```
 
 
@@ -610,3 +610,12 @@ summary(axuste)
 axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
 summary(axuste_interaccions)
 ```
+
+```{r}
+plot(axuste_interaccions)
+plot(axuste_interaccions$residuals)
+t.test(axuste_interaccions$residuals, mu = 0)
+Box.test(axuste_interaccions$residuals)
+shapiro.test(axuste_interaccions$residuals)
+```
+

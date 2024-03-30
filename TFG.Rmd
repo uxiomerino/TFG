@@ -612,10 +612,24 @@ summary(axuste_interaccions)
 ```
 
 ```{r}
+library(car)
+
 plot(axuste_interaccions)
 plot(axuste_interaccions$residuals)
 t.test(axuste_interaccions$residuals, mu = 0)
 Box.test(axuste_interaccions$residuals)
 shapiro.test(axuste_interaccions$residuals)
+vif(axuste_interaccions)
+```
+
+```{r}
+load("~/GCED/TFG/Datos/df_equipos.RData")
+df_equipos
+
+axuste_victorias <- glm(Resultado ~ PPPos + PPT + PPT2 + PPT3 + TAsist + T2Asist + T3Asist + TL_Min + TL_F + RebTot + RebOf + RebDef + `%TL` + Asist + TO + Rec + TRea + FRea, data = df_equipos)
+summary(axuste_victorias)
+```
+```{r}
+plot(axuste_victorias)
 ```
 

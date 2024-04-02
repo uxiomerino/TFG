@@ -23,5 +23,5 @@ Funcionalidades do código a implementar ou correxir:
           - Selección de variables? <br>
           - Probar **modelos non paramétricos** <br>
           - Probar outras opcións: **modelos polinómicos, RandomForest...**
-      * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** <br> *FEITO*
+      * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** *FEITO* <br> 
       * **Ter en conta o rival** a través dalgunha medida <br> 

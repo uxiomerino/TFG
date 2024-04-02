@@ -559,7 +559,7 @@ df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
 
 
 
-## Análisis de la distribución de minutos para seleccionar el umbral
+## Análise da distribución de minutos para seleccionar o umbral
 ```{r}
 summary(df_combinaciones$Minutos)
 
@@ -570,13 +570,32 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.30, ]
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 5, ]
 head(df_combinaciones)
 ```
 
 ```{r}
 summary(df_combinaciones$Minutos)
 ```
+
+```{r}
+medias <- df_combinaciones %>%
+  group_by(Equipo) %>%
+  summarise(media = mean(Diferencia))
+
+head(medias)
+
+df_combinaciones <- left_join(df_combinaciones, medias, by = "Equipo")
+
+df_combinaciones <- df_combinaciones %>%
+  mutate(Diferencia = Diferencia - media) %>%
+  select(-media)
+
+head(df_combinaciones)
+```
+
+
+
 
 ```{r}
 df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
@@ -610,6 +629,7 @@ summary(axuste)
 axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
 summary(axuste_interaccions)
 ```
+
 
 ```{r}
 # Análisis de residuos
@@ -671,19 +691,15 @@ ncvTest(axuste_interaccions)
 Box.test(res.est, lag = 5, type = "Ljung-Box")	   	 # Prueba de Ljung-Box 
 ```
 
-```{r}
-library(randomForest)
-
-modelo_rf <- randomForest(Dif ~ C1*C2*C3*C4*C5*C6, data = df_quintetos)
-varImpPlot(modelo_rf)
-```
+ 
+## Modelo non paramétrico:
 
 ```{r}
-library(rpart)
-
-# Entrenamiento del árbol de decisión
-modelo_arbol <- rpart(Dif ~ C1+C2+C3+C4+C5+C6, data = df_quintetos, method = "anova")
+loess(Dif ~ ., data = df_quintetos)
 ```
+
+
+
 
 
 

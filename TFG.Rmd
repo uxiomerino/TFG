@@ -248,11 +248,12 @@ distancia <- function(df, x1, ano1, x2, ano2, method = "Euclidean") {
   return(distancia)
 }
 
-buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Euclidean"){
+buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", cluster = NA, method = "Euclidean"){
   
   df <- df[df$Año == año, ]
   coords1 <- df[df$Xogador == x1, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
   if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
+  if (!is.na(cluster)) df <- df[df$CLUSTER == cluster, ]
   
   dist_min <- Inf
   
@@ -270,11 +271,12 @@ buscar_xogador <- function(df, x1, equipo = NA, año = "2023/24", method = "Eucl
   return (c(xogador_final, dist_min))
 }
 
-busqueda_xogadores_cercanos <- function(df, x1, distancia, equipo = NA, año = "2023/24", method = "Euclidean"){
+busqueda_xogadores_cercanos <- function(df, x1, distancia, equipo = NA, cluster = NA, año = "2023/24", method = "Euclidean"){
   
   if (!is.na(año)) df <- df[df$Año == año, ]
   coords1 <- df[df$Xogador == x1, c('PC1', 'PC2', 'PC3', 'PC4', 'PC5')]
   if (!is.na(equipo)) df <- df[df$Equipo == equipo, ]
+  if (!is.na(cluster)) df <- df[df$CLUSTER == cluster, ]
   
   xogadores <- c()
   total <- c()
@@ -450,10 +452,8 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 2, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 6, ]
 ```
-
-
 
 
 ## ANALISIS DOS PERFIS DOS EQUIPOS
@@ -462,19 +462,28 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
 ```
 
-
-
 ```{r}
-clusters_equipos <- ordered_clustered_jerarquico_euclideo %>%
+df_clusters <- ordered_clustered_jerarquico_euclideo %>%
   group_by(Equipo, Ano, CLUSTER) %>%
-  summarise(nXogadores = n())
+  summarise(count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = CLUSTER, values_from = count, values_fill = 0)
 
-# Muestra el resultado
-print(clusters_equipos)
+df_clusters
 ```
 
 ```{r}
-clusters_equipos[clusters_equipos$Equipo == "Monbus Obradoiro", ]
+df_con_cluster <- df_dist
+df_con_cluster$CLUSTER <- clustered_jerarquico_euclideo$CLUSTER
+
+# Exemplo de uso funcion buscar_xogador
+buscar_xogador(df_con_cluster, "20 NICO LAPROVITTOLA", año = "2023/24")
+buscar_xogador(df_con_cluster, "20 NICO LAPROVITTOLA", año = "2023/24", cluster =  2)
+```
+
+```{r}
+# Exemplo de uso da funcion busqueda_xogadores_cercanos
+busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 3)[1]
+busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 3, cluster = 6)[1]
 ```
 
 

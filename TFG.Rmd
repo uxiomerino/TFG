@@ -456,6 +456,23 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 ```
 
 
+### Clustering difuso
+```{r}
+library(fclust)
+
+clusters_fuzzy <- Fclust(df_clusters, k = 6)
+
+summary(clusters_fuzzy)
+
+Hraw(df_clusters, clusters_fuzzy$H)
+```
+
+
+
+
+
+
+
 ## ANALISIS DOS PERFIS DOS EQUIPOS
 
 ```{r}

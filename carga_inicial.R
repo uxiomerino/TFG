@@ -191,8 +191,8 @@ PPP_Eq <- PPP_Eq[PPP_Eq$Xornada != 0, ]
 PPP_Eq$Resultado <- PPP_Eq$`Valor Equipo` - PPP_Eq$`Valor Rival`
 df_equipos <- PPP_Eq[, c('Xornada','Resultado')]
 
-df_equipos[df_equipos$Resultado > 0, 'Resultado'] <- 1
-df_equipos[df_equipos$Resultado < 0, 'Resultado'] <- 0
+df_equipos[df_equipos$Resultado > 0, 'Resultado'] <- T
+df_equipos[df_equipos$Resultado < 0, 'Resultado'] <- F
 
 df_equipos$PPPos <- PPPos_Eq[PPPos_Eq$Xornada != 0, ]$`Valor Equipo`
 df_equipos$PPT <- PPT_Eq[PPT_Eq$Xornada != 0, ]$`Valor Equipo`

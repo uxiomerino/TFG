@@ -14,14 +14,14 @@ Funcionalidades do código a implementar ou correxir:
   - **Punto 2: Clustering** : <br>
         * Clustering coa bdd completa *FEITO* <br>
         * Análise dos perfís que ten o Obradoiro (en contraposición cos de outros equipos) *FEITO* <br>
-        * Fuzzy clustering? <br>
-        * Mellor agrupación: **CLUSTERING XERÁRQUICO con distancia euclídea*
+        * Mellor agrupación: **CLUSTERING XERÁRQUICO, distancia euclídea método de Ward2**
   - **Punto 3: Regresión** : <br>
       * Datos de quintetos de 22/23 listo, descargar e xuntar os datos da 23/24 <br>
       * Buscar a configuración óptima de quintetos a través de modelo de regresión: <br>
+          - Búsqueda de **vars de equipo signif para a victoria**, e búsqueda de **clusters signif para esas vars** *FEITO* <br>
           - Interaccións son importantes, probar os modelos con elas e **entender ben os resultados** <br>
-          - Transformación de variables? <br>
-          - Selección de variables? <br>
+          - **Transformación de variables?** <br>
+          - **Selección de variables** <br>
           - Probar **modelos non paramétricos** <br>
           - Probar outras opcións: **modelos polinómicos, RandomForest...**
       * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** *FEITO* <br> 

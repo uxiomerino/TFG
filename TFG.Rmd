@@ -476,10 +476,13 @@ Hraw(df_clusters, clusters_fuzzy$H)
 ## ANALISIS DOS PERFIS DOS EQUIPOS
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & 
+                                        ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
 ```
 
 ```{r}
+library(tidyr)
+
 df_clusters <- ordered_clustered_jerarquico_euclideo %>%
   group_by(Equipo, Ano, CLUSTER) %>%
   summarise(count = n(), .groups = 'drop') %>%
@@ -531,7 +534,6 @@ df_combinaciones[which.max(df_combinaciones$Minutos), ]
 df_combinaciones[which.max(df_combinaciones$Diferencia), ]
 df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
-
 
 ```{r}
 xogadores_validos <- unique(df_union[df_union$Año == "2022/23", "Xogador"])
@@ -621,6 +623,15 @@ head(df_combinaciones)
 ```
 
 
+```{r}
+hist(df_quintetos$Dif, prob = T, breaks = "FD")
+lines(density(df_quintetos$Dif), col = "blue", lwd = 2)
+print(length(boxplot(df_quintetos$Dif, outline = TRUE, main ="Boxplot de Dif")$out))
+print(shapiro.test(df_quintetos$Dif)$p.value)
+```
+
+
+
 
 
 ```{r}
@@ -645,98 +656,19 @@ df_quintetos$Dif <- df_combinaciones$Diferencia
 head(df_quintetos)
 ```
 
+
+## Probas de modelos:
 ```{r}
-axuste <- lm(Dif~C1+C2+C3+C4+C5+C6, data = df_quintetos)
-summary(axuste)
+df_quintetos$Dif_Transf <- df_quintetos$Dif + abs(min(df_quintetos$Dif)) + 1
+
+axuste_glm <- glm(Dif_Transf~C1*C2*C3*C4*C5*C6, data = df_quintetos, family = Gamma)
+summary(axuste_glm)
 ```
 
-
 ```{r}
-axuste_interaccions <- lm(Dif~C1*C2*C3*C4*C5*C6, data = df_quintetos)
-summary(axuste_interaccions)
+plot(residuals(axuste_glm))
+plot(axuste_glm)
 ```
-
-
-```{r}
-# Análisis de residuos
-library(car)
-library(MASS)
-
-MSSR <- summary(axuste_interaccions)$sigma^2
-res <- residuals(axuste_interaccions)
-res.est <- res/sqrt(MSSR)
-res.stud <- studres(axuste_interaccions) 
-
-
-# standarizados vs studentizados
-plot(axuste_interaccions$fitted.values, res.est, 
-     type="p",col=4,pch=19, xlab="Axustados",ylab="Residuos", 
-     ylim=range(cbind(res.est,res.stud)))
-points(axuste_interaccions$fitted.values,res.stud, col=2,pch=17)
-legend("topleft",c("Estandarizados","Studentizados"),
-       pch=19,col=c(4,2),lty=c(-1,-1))
-
-
-scatter.smooth(axuste_interaccions$fit, res.est, main="Residuos ~ Axustados", 
-               xlab="Axustados",ylab="Residuos", pch = 21, 
-               bg = "green", cex.lab=1.5, cex=1.4, cex.main=1.5, 
-               lpars = list(col = "magenta", lwd = 3) )
-abline(h=0,lty=2,lwd=2)
-
-par(mfrow=c(2,2))
-# Histograma y ajuste normal
-hist(res.est, breaks="FD",freq=FALSE, main = "", xlab="Residuos", cex.lab=1.4, 
-     ylab = "Densidad", col = "lightblue", ylim=c(0,0.6))
-curve( dnorm(x), col="magenta", lwd=3, add=TRUE)
-etiquetas <- c("Histograma","Ajuste normal")
-legend("topright",etiquetas, lwd=2, col=c("lightblue","magenta"), 
-       lty=c(1,1), cex=1.3, inset=0.02, box.lty=0)
-# Diagrama de cajas
-boxplot(res.est, main = "", xlab="Residuos",
-        cex.lab=1.4, border = "blue", col= "lightblue", pch="+",
-        horizontal = TRUE, cex=3)
-
-plot(density(res.est, bw=0.4),main="",lwd=3,col="blue",
-     ylab="Densidad stimada residuos", cex.lab=1.4, cex.lab=1.4)
-polygon(density(res.est,bw=0.4), col="lightblue")
-curve( dnorm(x), col="magenta", lwd=3, add=TRUE)
-qqPlot(res.est)
-
-
-nortest::lillie.test(res.est)   # Prueba de Lilliefors 
-nortest::cvm.test(res.est)      # Prueba de Cramer Von-Mises
-nortest::ad.test(res.est)       # Prueba de Anderson-Darling
-shapiro.test(res.est)           # Prueba de Shapiro-Wilks
-moments::agostino.test(res.est) # Prueba de D'Agostino
-
-plot(axuste_interaccions, which=3)
-# H0: sigma^2=cte  vs H1: sigma^2!=cte
-# Test de Breusch-Pagan
-ncvTest(axuste_interaccions) 
-
-Box.test(res.est, lag = 5, type = "Ljung-Box")	   	 # Prueba de Ljung-Box 
-```
-
- 
-## Modelo non paramétrico:
-
-```{r}
-loess(Dif ~ ., data = df_quintetos)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -744,17 +676,115 @@ loess(Dif ~ ., data = df_quintetos)
 ```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
 
-axuste_victorias <- glm(Resultado ~ PPPos + PPT + PPT2 + PPT3 + TAsist + T2Asist + T3Asist + TL_Min + TL_F + RebTot + RebOf + RebDef + `%TL` + Asist + TO + Rec + TRea + FRea, data = df_equipos)
+axuste_victorias <- glm(Resultado ~ .-Xornada, data = df_equipos, family = binomial)
 summary(axuste_victorias)
-shapiro.test(resid(axuste_victorias))
+```
 
-qqnorm(resid(axuste_victorias))
-qqline(resid(axuste_victorias))
+```{r}
+valores_ajustados <- predict(axuste_victorias, type = "response")
+# Residuos
+residuos <- residuals(axuste_victorias, type = "deviance")
 
-AIC(axuste_victorias)
-BIC(axuste_victorias)
+# Gráfico de dispersión de residuos
+plot(valores_ajustados, residuos, xlab = "Valores Ajustados", ylab = "Residuos", main = "Gráfico de Dispersión de Residuos")
+
+library(pROC)
+# Área bajo la curva ROC (AUC-ROC)
+roc_obj <- roc(df_equipos$Resultado, valores_ajustados)
+print(roc_obj$auc)
+# Gráfico de la curva ROC
+plot(roc_obj, main = "Curva ROC")
+
+library(car)
+# Prueba de VIF (variance inflation factor)
+print(vif(axuste_victorias))
+```
+
+
+```{r}
+drop1(axuste_victorias, test = "Chisq")
+axuste_victorias2 <- glm(Resultado~.-Xornada-Asist, data = df_equipos, family = binomial)
+anova(axuste_victorias, axuste_victorias2, test="Chisq")
 ```
 ```{r}
-plot(axuste_victorias)
+drop1(axuste_victorias2, test = "Chisq")
+axuste_victorias3 <- glm(Resultado~.-Xornada-Asist-`%TL`, data = df_equipos, family = binomial)
+anova(axuste_victorias2, axuste_victorias3, test="Chisq")
+```
+```{r}
+drop1(axuste_victorias3, test = "Chisq")
+axuste_victorias4 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea, data = df_equipos, family = binomial)
+anova(axuste_victorias3, axuste_victorias4, test="Chisq")
+```
+```{r}
+drop1(axuste_victorias4, test = "Chisq")
+axuste_victorias5 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3, data = df_equipos, family = binomial)
+anova(axuste_victorias4, axuste_victorias5, test = "Chisq")
 ```
 
+```{r}
+drop1(axuste_victorias5, test = "Chisq")
+axuste_victorias6 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min, data = df_equipos, family = binomial)
+anova(axuste_victorias5, axuste_victorias6, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias6, test = "Chisq")
+axuste_victorias7 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea, data = df_equipos, family = binomial)
+anova(axuste_victorias6, axuste_victorias7, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias7, test = "Chisq")
+axuste_victorias8 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist, data = df_equipos, family = binomial)
+anova(axuste_victorias7, axuste_victorias8, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias8, test = "Chisq")
+axuste_victorias9 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2, data = df_equipos, family = binomial)
+anova(axuste_victorias8, axuste_victorias9, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias9, test = "Chisq")
+axuste_victorias10 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos, data = df_equipos, family = binomial)
+anova(axuste_victorias9, axuste_victorias10, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias10, test = "Chisq")
+axuste_victorias11 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist, data = df_equipos, family = binomial)
+anova(axuste_victorias10, axuste_victorias11, test = "Chisq")
+```
+
+```{r}
+drop1(axuste_victorias11, test = "Chisq")
+axuste_victorias12 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist-TL_F, data = df_equipos, family = binomial)
+anova(axuste_victorias11, axuste_victorias12, test = "Chisq")
+```
+
+```{r}
+axuste_victorias_final <- axuste_victorias11
+
+summary(axuste_victorias_final)
+```
+
+```{r}
+plot(axuste_victorias_final)
+plot(axuste_victorias_final, which = 4)
+```
+
+
+```{r}
+car::residualPlots(axuste_victorias_final, type="deviance")
+car::avPlots(axuste_victorias_final,terms=~.)
+crPlots(axuste_victorias_final)
+```
+
+```{r}
+vif(axuste_victorias_final)
+
+im <- influence.measures(axuste_victorias_final)
+summary(im)
+```

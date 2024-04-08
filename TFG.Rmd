@@ -220,7 +220,7 @@ plot <- plot %>% add_trace(marker = list(size = 3, color = ~PC1, colorscale = "V
 plot <- plot %>% layout(scene = list(xaxis = list(title = "Comp 1"),
                                      yaxis = list(title = "Comp 2"),
                                      zaxis = list(title = "Comp 3")),
-                        title = "Xogadores máis significativos en cada compoñente")
+                        title = "Xogadores representados nas 3 primeiras compoñentes")
 plot
 ```
 
@@ -416,7 +416,7 @@ for (metodo in metodos){
 ```
 
 ```{r}
-clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D")
+clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D2")
 clusters_jerarquico_euclideo <- cutree(clustering_jerarquico_euclideo, k = 6)
 
 clustered_jerarquico_euclideo <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico_euclideo)
@@ -456,24 +456,11 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUS
 ```
 
 
-### Clustering difuso
-```{r}
-library(fclust)
-
-clusters_fuzzy <- Fclust(df_clusters, k = 6)
-
-summary(clusters_fuzzy)
-
-Hraw(df_clusters, clusters_fuzzy$H)
-```
-
-
-
-
-
-
-
 ## ANALISIS DOS PERFIS DOS EQUIPOS
+```{r}
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & 
+                                        ordered_clustered_jerarquico_euclideo$Ano == "2022/23", ]
+```
 
 ```{r}
 ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & 
@@ -489,6 +476,23 @@ df_clusters <- ordered_clustered_jerarquico_euclideo %>%
   pivot_wider(names_from = CLUSTER, values_from = count, values_fill = 0)
 
 df_clusters
+```
+
+```{r}
+frecuencias <- df_clusters %>%
+  group_by_at(vars(-Equipo, -Ano)) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  arrange(desc(count))
+
+# Visualizar a configuración máis repetida
+head(frecuencias, 2)
+
+# Número de configuracións diferentes
+print(nrow(frecuencias))
+
+# Verificar se algun cluster sempre ten representación
+clusters_sin_ceros <- apply(df_clusters[, -(1:2)], 2, function(x) all(x > 0))
+print(clusters_sin_ceros)
 ```
 
 ```{r}
@@ -631,9 +635,6 @@ print(shapiro.test(df_quintetos$Dif)$p.value)
 ```
 
 
-
-
-
 ```{r}
 df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
 df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
@@ -657,18 +658,20 @@ head(df_quintetos)
 ```
 
 
-## Probas de modelos:
-```{r}
-df_quintetos$Dif_Transf <- df_quintetos$Dif + abs(min(df_quintetos$Dif)) + 1
 
-axuste_glm <- glm(Dif_Transf~C1*C2*C3*C4*C5*C6, data = df_quintetos, family = Gamma)
-summary(axuste_glm)
-```
 
-```{r}
-plot(residuals(axuste_glm))
-plot(axuste_glm)
-```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -775,7 +778,6 @@ plot(axuste_victorias_final)
 plot(axuste_victorias_final, which = 4)
 ```
 
-
 ```{r}
 car::residualPlots(axuste_victorias_final, type="deviance")
 car::avPlots(axuste_victorias_final,terms=~.)
@@ -787,4 +789,12 @@ vif(axuste_victorias_final)
 
 im <- influence.measures(axuste_victorias_final)
 summary(im)
+```
+
+```{r}
+predicciones <- predict(axuste_victorias_final, type = "response")
+
+umbral <- 0.5
+pred_binarias <- ifelse(predicciones > umbral, 1, 0)
+sum(pred_binarias == df_equipos$Resultado)/length(pred_binarias)
 ```

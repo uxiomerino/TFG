@@ -103,7 +103,7 @@ library(factoextra)
 library(plotly)
 
 df_pca <- df_union[, -c(3, 7)]
-pca <- prcomp(df_pca %>% select_if(is.numeric), scale. = T) # This function includes an automatic standarization of data
+pca <- prcomp(df_pca %>% select_if(is.numeric), scale. = T) # Estandarización a varianza 1
 
 fviz_eig(pca, addlabels = TRUE, ylim = c(0, 40))
 ```
@@ -375,7 +375,6 @@ df_clusters <- scale(df_clusters)
 summary(df_clusters)
 ```
 
-
 ```{r}
 metodos = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
 for (metodo in metodos){
@@ -401,11 +400,11 @@ plot_ly(data = plot_clusters_jerarquico, x = ~CP1, y = ~CP2, z = ~CP3, type = "s
 
 ```{r}
 plot(clustering_jerarquico)
-rect.hclust(clustering_jerarquico, k = 6)
+rect.hclust(clustering_jerarquico, h = 30)
 
 library(dendextend)
 dend <- as.dendrogram(clustering_jerarquico)
-dend_colored <- color_branches(dend, k = 6)
+dend_colored <- color_branches(dend, h = 30)
 plot(dend_colored)
 ```
 
@@ -439,7 +438,7 @@ for (metodo in metodos){
 
 ```{r}
 clustering_jerarquico_euclideo <- hclust(dist(df_clusters, method = "euclidean"), method = "ward.D2")
-clusters_jerarquico_euclideo <- cutree(clustering_jerarquico_euclideo, k = 6)
+clusters_jerarquico_euclideo <- cutree(clustering_jerarquico_euclideo, h = 30)
 
 clustered_jerarquico_euclideo <- data.frame(Xogador = df_union$Xogador, Ano = df_union$Año, Equipo = df_union$Equipo, CLUSTER = clusters_jerarquico_euclideo)
 
@@ -454,11 +453,11 @@ plot_ly(data = plot_clusters_jerarquico_euclideo, x = ~CP1, y = ~CP2, z = ~CP3, 
 
 ```{r}
 plot(clustering_jerarquico_euclideo)
-rect.hclust(clustering_jerarquico_euclideo, k = 6)
+rect.hclust(clustering_jerarquico_euclideo, h = 30)
 
 library(dendextend)
 dend <- as.dendrogram(clustering_jerarquico_euclideo)
-dend_colored <- color_branches(dend, k = 6)
+dend_colored <- color_branches(dend, h = 30)
 plot(dend_colored)
 ```
 
@@ -474,7 +473,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 6, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 4, ]
 ```
 
 

@@ -679,24 +679,24 @@ plot(roc_obj, main = "Curva ROC")
 ### Axuste cos xogadores
 
 ```{r}
-load("~/GCED/TFG/Datos/quintetos22-23.RData")
-quintetos22_23$Ano <- rep("2022/23", length(quintetos22_23$Equipo))
+load("~/GCED/TFG/Datos/df_PPT.RData")
+df_PPT$Ano <- rep("2022/23", length(df_PPT$Equipo))
 
-dim(quintetos22_23)
-head(quintetos22_23)
+dim(df_PPT)
+head(df_PPT)
 ```
 
 
 ```{r}
 library(tidyr)
-df_combinaciones <- separate(quintetos22_23, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+df_combinaciones <- separate(df_PPT, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
 n_miss(df_combinaciones)
 head(df_combinaciones)
 ```
 
 ```{r}
 df_combinaciones[which.max(df_combinaciones$Minutos), ]
-df_combinaciones[which.max(df_combinaciones$Diferencia), ]
+df_combinaciones[which.max(df_combinaciones$Media), ]
 df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
 
@@ -774,14 +774,14 @@ summary(df_combinaciones$Minutos)
 ```{r}
 medias <- df_combinaciones %>%
   group_by(Equipo) %>%
-  summarise(media = mean(Diferencia))
+  summarise(media = mean(Media))
 
 head(medias)
 
 df_combinaciones <- left_join(df_combinaciones, medias, by = "Equipo")
 
 df_combinaciones <- df_combinaciones %>%
-  mutate(Diferencia = Diferencia - media) %>%
+  mutate(Diferencia = Media - media) %>%
   select(-media)
 
 head(df_combinaciones)
@@ -806,7 +806,17 @@ for (i in (1:nrow(df_parcial))){
    df_quintetos[i, ] <- clusters_quinteto
 }
 
-df_quintetos$Dif <- df_combinaciones$Diferencia
+df_quintetos$Media <- df_combinaciones$Media
 head(df_quintetos)
 ```
+
+```{r}
+axuste_PPT <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+summary(axuste_PPT)
+```
+
+```{r}
+plot(axuste_PPT)
+```
+
 

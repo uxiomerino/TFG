@@ -222,3 +222,15 @@ head(df_equipos)
 save(df_equipos, file = "df_equipos.RData")
 
 
+
+
+
+
+
+# Liga ACB 2023/24
+PPT_1 <- read_csv("PPT_2223_1.csv")
+PPT_2 <- read_csv("PPT_2223_2.csv")
+
+df_PPT <- rbind(PPT_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], PPT_2[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
+save(df_PPT, file = "df_PPT.RData")
+     

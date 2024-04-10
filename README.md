@@ -5,7 +5,7 @@ Funcionalidades do código a implementar ou correxir:
     * Sustituir similitudes por distancias *FEITO* <br>
     * Utilizar só a ACB *FEITO* <br>
     * Utilidades: <br>
-      1. Reducción dimensionalidade (explica un 73% da varianza en 5 compoñentes, no lugar das 36 iniciais) <br>
+      1. Reducción dimensionalidade (explica un 73.8% da varianza en 5 compoñentes, no lugar das 36 iniciais) <br>
       2. Matrices de distancias <br>
       3. **Ferramentas de búsqueda:** <br>
           - Xogador máis cercano a un dado <br>

@@ -191,9 +191,6 @@ PPP_Eq <- PPP_Eq[PPP_Eq$Xornada != 0, ]
 PPP_Eq$Resultado <- PPP_Eq$`Valor Equipo` - PPP_Eq$`Valor Rival`
 df_equipos <- PPP_Eq[, c('Xornada','Resultado')]
 
-df_equipos[df_equipos$Resultado > 0, 'Resultado'] <- T
-df_equipos[df_equipos$Resultado < 0, 'Resultado'] <- F
-
 df_equipos$PPPos <- PPPos_Eq[PPPos_Eq$Xornada != 0, ]$`Valor Equipo`
 df_equipos$PPT <- PPT_Eq[PPT_Eq$Xornada != 0, ]$`Valor Equipo`
 df_equipos$PPT2 <- PPT2_Eq[PPT2_Eq$Xornada != 0, ]$`Valor Equipo`
@@ -233,4 +230,11 @@ PPT_2 <- read_csv("PPT_2223_2.csv")
 
 df_PPT <- rbind(PPT_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], PPT_2[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
 save(df_PPT, file = "df_PPT.RData")
-     
+
+RebDef_1 <- read_csv("RebDef_2324_1.csv")
+RebDef_2 <- read_csv("RebDef_2324_2.csv")
+
+df_RebDef <- rbind(RebDef_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], RebDef_2[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
+head(df_RebDef)
+save(df_RebDef, file = "df_RebDef.RData")
+

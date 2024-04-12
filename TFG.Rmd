@@ -627,8 +627,24 @@ axuste_victorias12 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-
 anova(axuste_victorias11, axuste_victorias12, test = "Chisq")
 ```
 
+
 ```{r}
-axuste_victorias_final <- axuste_victorias11
+vif(axuste_victorias11)
+```
+
+```{r}
+axuste_victorias13 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist-RebTot, data = df_equipos, family = binomial)
+anova(axuste_victorias11, axuste_victorias13, test = "Chisq")
+```
+
+```{r}
+summary(axuste_victorias13)
+
+vif(axuste_victorias13)
+```
+
+```{r}
+axuste_victorias_final <- axuste_victorias13
 
 summary(axuste_victorias_final)
 ```
@@ -645,8 +661,6 @@ crPlots(axuste_victorias_final)
 ```
 
 ```{r}
-vif(axuste_victorias_final)
-
 im <- influence.measures(axuste_victorias_final)
 summary(im)
 ```
@@ -664,16 +678,7 @@ roc_obj <- roc(df_equipos$Resultado, predicciones)
 print(roc_obj$auc)
 # Gráfico de la curva ROC
 plot(roc_obj, main = "Curva ROC")
-```
-
-
-
-
-
-
-
-
-
+```  
 
 
 ### Axuste cos xogadores
@@ -819,4 +824,8 @@ summary(axuste_PPT)
 plot(axuste_PPT)
 ```
 
+
+```{r}
+
+```
 

@@ -539,125 +539,101 @@ busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 
 ```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
 
-axuste_victorias <- glm(Resultado ~ .-Xornada, data = df_equipos, family = binomial)
+axuste_victorias <- lm(Resultado ~ .-Xornada, data = df_equipos)
 summary(axuste_victorias)
 ```
 
 ```{r}
-valores_ajustados <- predict(axuste_victorias, type = "response")
-# Residuos
-residuos <- residuals(axuste_victorias, type = "deviance")
-
-# Gráfico de dispersión de residuos
-plot(valores_ajustados, residuos, xlab = "Valores Ajustados", ylab = "Residuos", main = "Gráfico de Dispersión de Residuos")
-
-library(pROC)
-# Área bajo la curva ROC (AUC-ROC)
-roc_obj <- roc(df_equipos$Resultado, valores_ajustados)
-print(roc_obj$auc)
-# Gráfico de la curva ROC
-plot(roc_obj, main = "Curva ROC")
+plot(axuste_victorias)
 
 library(car)
 # Prueba de VIF (variance inflation factor)
 print(vif(axuste_victorias))
-```
 
-
-```{r}
 drop1(axuste_victorias, test = "Chisq")
-axuste_victorias2 <- glm(Resultado~.-Xornada-Asist, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias2 <- lm(Resultado~.-Xornada-PPT3, data = df_equipos)
 anova(axuste_victorias, axuste_victorias2, test="Chisq")
-```
-```{r}
 drop1(axuste_victorias2, test = "Chisq")
-axuste_victorias3 <- glm(Resultado~.-Xornada-Asist-`%TL`, data = df_equipos, family = binomial)
+```
+```{r}
+axuste_victorias3 <- lm(Resultado~.-Xornada-Asist-PPT3, data = df_equipos)
 anova(axuste_victorias2, axuste_victorias3, test="Chisq")
-```
-```{r}
 drop1(axuste_victorias3, test = "Chisq")
-axuste_victorias4 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea, data = df_equipos, family = binomial)
+```
+```{r}
+axuste_victorias4 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist, data = df_equipos)
 anova(axuste_victorias3, axuste_victorias4, test="Chisq")
-```
-```{r}
 drop1(axuste_victorias4, test = "Chisq")
-axuste_victorias5 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3, data = df_equipos, family = binomial)
+```
+```{r}
+axuste_victorias5 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`, data = df_equipos)
 anova(axuste_victorias4, axuste_victorias5, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias5, test = "Chisq")
-axuste_victorias6 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias6 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2, data = df_equipos)
 anova(axuste_victorias5, axuste_victorias6, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias6, test = "Chisq")
-axuste_victorias7 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias7 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos, data = df_equipos)
 anova(axuste_victorias6, axuste_victorias7, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias7, test = "Chisq")
-axuste_victorias8 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias8 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min, data = df_equipos)
 anova(axuste_victorias7, axuste_victorias8, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias8, test = "Chisq")
-axuste_victorias9 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias9 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min-FRea, data = df_equipos)
 anova(axuste_victorias8, axuste_victorias9, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias9, test = "Chisq")
-axuste_victorias10 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias10 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min-FRea-T3Asist, data = df_equipos)
 anova(axuste_victorias9, axuste_victorias10, test = "Chisq")
-```
-
-```{r}
 drop1(axuste_victorias10, test = "Chisq")
-axuste_victorias11 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist, data = df_equipos, family = binomial)
-anova(axuste_victorias10, axuste_victorias11, test = "Chisq")
 ```
 
 ```{r}
+axuste_victorias11 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min-FRea-T3Asist-TL_F, data = df_equipos)
+anova(axuste_victorias10, axuste_victorias11, test = "Chisq")
 drop1(axuste_victorias11, test = "Chisq")
-axuste_victorias12 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist-TL_F, data = df_equipos, family = binomial)
+```
+
+```{r}
+axuste_victorias12 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min-FRea-T3Asist-TL_F-TRea, data = df_equipos)
 anova(axuste_victorias11, axuste_victorias12, test = "Chisq")
 ```
-
 
 ```{r}
 vif(axuste_victorias11)
 ```
 
 ```{r}
-axuste_victorias13 <- glm(Resultado~.-Xornada-Asist-`%TL`-FRea-PPT3-TL_Min-TRea-T2Asist-PPT2-PPPos-T3Asist-RebTot, data = df_equipos, family = binomial)
-anova(axuste_victorias11, axuste_victorias13, test = "Chisq")
+summary(axuste_victorias11)
+
+vif(axuste_victorias11)
 ```
 
 ```{r}
+axuste_victorias13 <- lm(Resultado~.-Xornada-Asist-PPT3-T2Asist-`%TL`-PPT2-PPPos-TL_Min-FRea-T3Asist-TL_F-RebTot, data = df_equipos)
 summary(axuste_victorias13)
-
-vif(axuste_victorias13)
 ```
 
 ```{r}
 axuste_victorias_final <- axuste_victorias13
 
-summary(axuste_victorias_final)
-```
-
-```{r}
 plot(axuste_victorias_final)
-plot(axuste_victorias_final, which = 4)
-```
-
-```{r}
-car::residualPlots(axuste_victorias_final, type="deviance")
-car::avPlots(axuste_victorias_final,terms=~.)
-crPlots(axuste_victorias_final)
 ```
 
 ```{r}
@@ -665,30 +641,23 @@ im <- influence.measures(axuste_victorias_final)
 summary(im)
 ```
 
-```{r}
-predicciones <- predict(axuste_victorias_final, type = "response")
-
-umbral <- 0.5
-pred_binarias <- ifelse(predicciones > umbral, 1, 0)
-sum(pred_binarias == df_equipos$Resultado)/length(pred_binarias)
-```
-
-```{r}
-roc_obj <- roc(df_equipos$Resultado, predicciones)
-print(roc_obj$auc)
-# Gráfico de la curva ROC
-plot(roc_obj, main = "Curva ROC")
-```  
 
 
-### Axuste cos xogadores
+
+
+
+
+
+
+
+### Axuste xogadores
 
 ```{r}
-load("~/GCED/TFG/Datos/df_PPT.RData")
-df_PPT$Ano <- rep("2022/23", length(df_PPT$Equipo))
+load("~/GCED/TFG/Datos/df_RebDef.RData")
+df_RebDef$Ano <- rep("2023/24", length(df_RebDef$Equipo))
 
-dim(df_PPT)
-head(df_PPT)
+dim(df_RebDef)
+head(df_RebDef)
 ```
 
 
@@ -706,7 +675,7 @@ df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
 
 ```{r}
-xogadores_validos <- unique(df_union[df_union$Año == "2022/23", "Xogador"])
+xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
 cluster_1 <- c()
 cluster_2 <- c()
 cluster_3 <- c()
@@ -724,7 +693,7 @@ for (i in 1:nrow(df_combinaciones)) {
     clusters_quinteto <- c()
     for (xogador in xogadores_quinteto) {
       cluster <- ordered_clustered_jerarquico_euclideo$CLUSTER[ordered_clustered_jerarquico_euclideo$Xogador == xogador 
-                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2022/23"]
+                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2023/24"]
       clusters_quinteto <- c(clusters_quinteto, cluster)
     }
     cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
@@ -768,7 +737,7 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 5, ]
+df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.5, ]
 head(df_combinaciones)
 ```
 
@@ -816,16 +785,13 @@ head(df_quintetos)
 ```
 
 ```{r}
-axuste_PPT <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
-summary(axuste_PPT)
+axuste_RebOf <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+summary(axuste_RebOf)
 ```
 
 ```{r}
-plot(axuste_PPT)
+plot(axuste_RebOf)
 ```
 
 
-```{r}
-
-```
 

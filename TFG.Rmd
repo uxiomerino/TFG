@@ -559,8 +559,6 @@ MOD_FULL <- axuste_victorias
 stepMod <- step(MOD_NULL, direction = "both", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL) )
-
-
 ```
 
 ```{r}
@@ -573,7 +571,7 @@ vif(axuste_victorias_final)
 ```
 
 ```{r}
-axuste_victorias_final <- lm(Resultado ~ PPT + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F + T3Asist, data =df_equipos)
+axuste_victorias_final <- lm(Resultado ~ PPT + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F + T3Asist, data = df_equipos)
 summary(axuste_victorias_final)
 ```
 
@@ -590,22 +588,19 @@ summary(im)
 ```
 
 
-
-
 ### Axuste xogadores
 
 ```{r}
-load("~/GCED/TFG/Datos/df_PPT.RData")
+load("~/GCED/TFG/Datos/quintetos.RData")
 
-dim(df_PPT)
-head(df_PPT)
-tail(df_PPT)
+dim(quintetos)
+head(quintetos)
+tail(quintetos)
 ```
-
 
 ```{r}
 library(tidyr)
-df_combinaciones <- separate(df_PPT, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+df_combinaciones <- separate(quintetos, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
 n_miss(df_combinaciones)
 head(df_combinaciones)
 tail(df_combinaciones)
@@ -695,15 +690,16 @@ summary(df_combinaciones$Minutos)
 ```{r}
 medias <- df_combinaciones %>%
   group_by(Equipo) %>%
-  summarise(media = mean(Media))
+  summarise(media = mean(Diferencia))
 
 head(medias)
 
 df_combinaciones <- left_join(df_combinaciones, medias, by = "Equipo")
 
 df_combinaciones <- df_combinaciones %>%
-  mutate(Diferencia = Media - media) %>%
-  select(-media)
+  mutate(Diferencia = Diferencia - media) 
+
+df_combinaciones <- df_combinaciones[, -15]
 
 head(df_combinaciones)
 ```
@@ -726,7 +722,7 @@ for (i in (1:nrow(df_parcial))){
    df_quintetos[i, ] <- clusters_quinteto
 }
 
-df_quintetos$Media <- df_combinaciones$Media
+df_quintetos$Media <- df_combinaciones$Diferencia
 head(df_quintetos)
 ```
 

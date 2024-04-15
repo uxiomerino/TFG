@@ -146,24 +146,26 @@ save(df3, file="df3.RData")
 
 
 
-
+# Quintetos con diferencia como métrica
 quintetos1 <- read_csv("quintetos1.csv")
 quintetos2 <- read_csv("quintetos2.csv")
 quintetos <- rbind(quintetos2, quintetos1)
 quintetos$Diferencia <- (quintetos$`Valor Equipo` - quintetos$`Valor Rival`) / quintetos$Minutos
 quintetos <- quintetos[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
+quintetos$Ano <- rep("2023/24", length(quintetos$Xogadores))
 head(quintetos)
-save(quintetos, file = "quintetos.RData")
 
 quintetos22_23 <- rbind(read_csv("quintetos22-23_1.csv"), read_csv("quintetos22-23_2.csv"))
 quintetos22_23$Diferencia <- quintetos22_23$`Valor Xogadores` - quintetos22_23$`Valor Rival`
 quintetos22_23 <- quintetos22_23[, c("Equipo", "Xogadores", "Minutos", "Diferencia")]
+quintetos22_23$Ano <- rep("2022/23", length(quintetos22_23$Xogadores))
 head(quintetos22_23)
-save(quintetos22_23, file = "quintetos22-23.RData")
 
+quintetos <- rbind(quintetos22_23, quintetos)
 
-
-
+head(quintetos)
+tail(quintetos)
+save(quintetos, file = "quintetos.RData")
 
 
 
@@ -221,15 +223,52 @@ save(df_equipos, file = "df_equipos.RData")
 
 
 
+# Liga ACB 2022/23 EQUIPOS
+PPT_Obra <- read_csv("PPT_Obra.csv")[, c('Xornada', 'Valor Equipo')]
+TAsist_Obra <- read_csv("TAsist_Obra.csv")[, c('Xornada', 'Valor Equipo')]
+TL_F_Obra <- read_csv("TL_F_Obra.csv")[, c('Xornada', 'Valor Equipo')]
+RebOf_Obra <- read_csv("RebOf_Obra.csv")[, c('Xornada', 'Valor Equipo')]
+RebDef_Obra <- read_csv("RebDef_Obra.csv")[, c('Xornada', 'Valor Equipo')]
+boxscore_Obra <- read_csv("BS_Obra.csv")[, c('Xornada', 'Equipos', 'Pts...3', 'Pts...21', 'Pér...13', 'Rec...14', 'T.Rea...15')]
+
+PPT_Obra <- PPT_Obra[PPT_Obra$Xornada != 0, ]
+boxscore_Obra <- boxscore_Obra[boxscore_Obra$Xornada != 0, ]
+PPT_Obra$Resultado <- boxscore_Obra$`Pts...3` - boxscore_Obra$`Pts...21`
+df_Obra_2324 <- PPT_Obra[, c('Xornada', 'Resultado')]
+df_Obra_2324$PPT <- PPT_Obra$`Valor Equipo`
+df_Obra_2324$Rec <- boxscore_Obra$Rec...14
+df_Obra_2324$TO <- boxscore_Obra$Pér...13
+df_Obra_2324$TRea <- boxscore_Obra$T.Rea...15
+df_Obra_2324$RebDef <- RebDef_Obra[RebDef_Obra$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$RebOf <- RebOf_Obra[RebOf_Obra$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$TAsist <- TAsist_Obra[TAsist_Obra$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$TL_F <- TL_F_Obra[TL_F_Obra$Xornada != 0, ]$`Valor Equipo`
+
+head(df_Obra_2324)
+save(df_Obra_2324, file = "df_Obra_2324.RData")
 
 
 
-# Liga ACB 2023/24
+
+
+# Liga ACB vars
 PPT_1 <- read_csv("PPT_2223_1.csv")
 PPT_2 <- read_csv("PPT_2223_2.csv")
+PPT_3 <- read_csv("PPT_2324_1.csv")
+PPT_4 <- read_csv("PPT_2324_2.csv")
 
-df_PPT <- rbind(PPT_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], PPT_2[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
+df_PPT_1 <- rbind(PPT_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], PPT_2[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
+df_PPT_1$Ano <- rep("2022/23", length(df_PPT_1$Equipo))
+df_PPT_2 <- rbind(PPT_3[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], PPT_4[, c('Xogadores', 'Equipo', 'Minutos', 'Media')])
+df_PPT_2$Ano <- rep("2023/24", length(df_PPT_2$Equipo))
+
+df_PPT <- rbind(df_PPT_1, df_PPT_2)
+
+head(df_PPT)
+tail(df_PPT)
 save(df_PPT, file = "df_PPT.RData")
+
+
 
 RebDef_1 <- read_csv("RebDef_2324_1.csv")
 RebDef_2 <- read_csv("RebDef_2324_2.csv")

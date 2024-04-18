@@ -531,7 +531,6 @@ busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 
 ```
 
 
-
 ## MODELOS DE REGRESIÓN:
 
 ### Axuste cos equipos:
@@ -562,12 +561,11 @@ stepMod <- step(MOD_NULL, direction = "both", trace = 1,
 ```
 
 ```{r}
-axuste_victorias_final <- lm(Resultado ~ PPT + RebTot + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F + T3Asist, data =df_equipos)
-summary(axuste_victorias_final)
+summary(stepMod)
 ```
 
 ```{r}
-vif(axuste_victorias_final)
+vif(stepMod)
 ```
 
 ```{r}
@@ -583,9 +581,15 @@ plot(axuste_victorias_final)
 ```
 
 ```{r}
+shapiro.test(axuste_victorias_final$residuals)
+```
+
+```{r}
 im <- influence.measures(axuste_victorias_final)
 summary(im)
 ```
+
+## Introducir axuste Bilbao Basket aquí para a mostra
 
 
 ### Axuste xogadores
@@ -665,7 +669,6 @@ df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
 ```
 
 
-
 ## Análise da distribución de minutos para seleccionar o umbral
 ```{r}
 summary(df_combinaciones$Minutos)
@@ -677,60 +680,84 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 ```
 
 ```{r}
-df_combinaciones <- df_combinaciones[df_combinaciones$Minutos > 2.5, ]
-head(df_combinaciones)
-tail(df_combinaciones)
-n_miss(df_combinaciones)
+df_combinaciones10 <- df_combinaciones[df_combinaciones$Minutos > 10, ]
+head(df_combinaciones10)
+tail(df_combinaciones10)
+n_miss(df_combinaciones10)
 ```
 
 ```{r}
-summary(df_combinaciones$Minutos)
+summary(df_combinaciones10$Minutos)
 ```
 
 ```{r}
-medias <- df_combinaciones %>%
+medias <- df_combinaciones10 %>%
   group_by(Equipo) %>%
   summarise(media = mean(Diferencia))
 
 head(medias)
 
-df_combinaciones <- left_join(df_combinaciones, medias, by = "Equipo")
+df_combinaciones10 <- left_join(df_combinaciones10, medias, by = "Equipo")
 
-df_combinaciones <- df_combinaciones %>%
+df_combinaciones10 <- df_combinaciones10 %>%
   mutate(Diferencia = Diferencia - media) 
 
-df_combinaciones <- df_combinaciones[, -15]
+df_combinaciones10 <- df_combinaciones10[, -15]
 
-head(df_combinaciones)
+head(df_combinaciones10)
 ```
 
 ```{r}
-df_parcial <- df_combinaciones[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
-df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
-colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
-
-for (i in (1:nrow(df_parcial))){
-  clusters_quinteto <- numeric(6)
-  for (j in (1:ncol(df_parcial))){
-    if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
-    if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
-    if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
-    if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
-    if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
-    if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+pasoClusters <- function (df, Obxectivo){
+  df_parcial <- df[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
+  df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
+  colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
+  
+  for (i in (1:nrow(df_parcial))){
+    clusters_quinteto <- numeric(6)
+    for (j in (1:ncol(df_parcial))){
+      if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
+      if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
+      if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
+      if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
+      if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
+      if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+    }
+     df_quintetos[i, ] <- clusters_quinteto
   }
-   df_quintetos[i, ] <- clusters_quinteto
+  
+  df_quintetos$Media <- df$Obxectivo
+  head(df_quintetos)
 }
 
-df_quintetos$Media <- df_combinaciones$Diferencia
-head(df_quintetos)
+pasoClusters(df_combinaciones10, Diferencia)
 ```
 
 ```{r}
-axuste_PPT <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
-summary(axuste_PPT)
+axuste_Diferencia <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+summary(axuste_Diferencia)
 ```
 
 ```{r}
-plot(axuste_PPT)
+plot(axuste_Diferencia)
 ```
+
+```{r}
+shapiro.test(axuste_Diferencia$residuals)
+```
+
+
+
+
+### Axuste específico Obradoiro
+
+```{r}
+df_combis_Obradoiro <- df_combinaciones[df_combinaciones$Equipo == "Monbus Obradoiro" & df_combinaciones$Ano == "2023/24", ]
+head(df_combis_Obradoiro)
+dim(df_combis_Obradoiro)
+```
+
+```{r}
+df_combis_Obradoiro[which.max(df_combis_Obradoiro$Diferencia), ]
+```
+

@@ -165,6 +165,8 @@ quintetos <- rbind(quintetos22_23, quintetos)
 
 head(quintetos)
 tail(quintetos)
+
+
 save(quintetos, file = "quintetos.RData")
 
 
@@ -223,30 +225,117 @@ save(df_equipos, file = "df_equipos.RData")
 
 
 
-# Liga ACB 2022/23 EQUIPOS
-PPT_Obra <- read_csv("PPT_Obra.csv")[, c('Xornada', 'Valor Equipo')]
-TAsist_Obra <- read_csv("TAsist_Obra.csv")[, c('Xornada', 'Valor Equipo')]
-TL_F_Obra <- read_csv("TL_F_Obra.csv")[, c('Xornada', 'Valor Equipo')]
-RebOf_Obra <- read_csv("RebOf_Obra.csv")[, c('Xornada', 'Valor Equipo')]
-RebDef_Obra <- read_csv("RebDef_Obra.csv")[, c('Xornada', 'Valor Equipo')]
-boxscore_Obra <- read_csv("BS_Obra.csv")[, c('Xornada', 'Equipos', 'Pts...3', 'Pts...21', 'Pér...13', 'Rec...14', 'T.Rea...15')]
+# Liga ACB 2022/23 Obradoiro
+PPP_Obra_2324 <- as.data.frame(read_csv("PPP_Obra_2324.csv")[, c('Xornada', 'Valor Equipo', 'Valor Rival')])
+PPPos_Obra_2324 <- read_csv("PPPos_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+PPT_Obra_2324 <- read_csv("PPT_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+PPT2_Obra_2324 <- read_csv("PPT2_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+PPT3_Obra_2324 <- read_csv("PPT3_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+TAsist_Obra_2324 <- read_csv("TAsist_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+T2Asist_Obra_2324 <- read_csv("T2Asist_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+T3Asist_Obra_2324 <- read_csv("T3Asist_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+TL_Min_Obra_2324 <- read_csv("TL_Min_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+TL_F_Obra_2324 <- read_csv("TL_F_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+RebTot_Obra_2324 <- read_csv("RebTot_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+RebOf_Obra_2324 <- read_csv("RebOf_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+RebDef_Obra_2324 <- read_csv("RebDef_Obra_2324.csv")[, c('Xornada', 'Valor Equipo')]
+boxscore_Obra_2324 <- read_csv("BS_Obra_2324.csv")
+boxscore_perdida_Obra_2324 <- read_csv("BS_Per_Obra_2324.csv")[, c('Xornada', 'Pts...3')]
+boxscore_RebOf_Obra_2324 <- read_csv("BS_RebOf_Obra_2324.csv")[, c('Xornada', 'Pts...3')]
 
-PPT_Obra <- PPT_Obra[PPT_Obra$Xornada != 0, ]
-boxscore_Obra <- boxscore_Obra[boxscore_Obra$Xornada != 0, ]
-PPT_Obra$Resultado <- boxscore_Obra$`Pts...3` - boxscore_Obra$`Pts...21`
-df_Obra_2324 <- PPT_Obra[, c('Xornada', 'Resultado')]
-df_Obra_2324$PPT <- PPT_Obra$`Valor Equipo`
-df_Obra_2324$Rec <- boxscore_Obra$Rec...14
-df_Obra_2324$TO <- boxscore_Obra$Pér...13
-df_Obra_2324$TRea <- boxscore_Obra$T.Rea...15
-df_Obra_2324$RebDef <- RebDef_Obra[RebDef_Obra$Xornada != 0, ]$`Valor Equipo`
-df_Obra_2324$RebOf <- RebOf_Obra[RebOf_Obra$Xornada != 0, ]$`Valor Equipo`
-df_Obra_2324$TAsist <- TAsist_Obra[TAsist_Obra$Xornada != 0, ]$`Valor Equipo`
-df_Obra_2324$TL_F <- TL_F_Obra[TL_F_Obra$Xornada != 0, ]$`Valor Equipo`
+PPP_Obra_2324 <- PPP_Obra_2324[PPP_Obra_2324$Xornada != 0, ]
+PPP_Obra_2324$Resultado <- PPP_Obra_2324$`Valor Equipo` - PPP_Obra_2324$`Valor Rival`
+df_Obra_2324 <- PPP_Obra_2324[, c('Xornada','Resultado')]
+
+df_Obra_2324$PPPos <- df_Obra_2324[df_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$PPT <- PPT_Obra_2324[PPT_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$PPT2 <- PPT2_Obra_2324[PPT2_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$PPT3 <- PPT3_Obra_2324[PPT3_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$TAsist <- TAsist_Obra_2324[TAsist_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$T2Asist <- T2Asist_Obra_2324[T2Asist_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$T3Asist <- T3Asist_Obra_2324[T3Asist_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$TL_Min <- TL_Min_Obra_2324[TL_Min_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$TL_F <- TL_F_Obra_2324[TL_F_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$RebTot <- RebTot_Obra_2324[RebTot_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$RebOf <- RebOf_Obra_2324[RebOf_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+df_Obra_2324$RebDef <- RebDef_Obra_2324[RebDef_Obra_2324$Xornada != 0, ]$`Valor Equipo`
+
+boxscore_Obra_2324 <- boxscore_Obra_2324[boxscore_Obra_2324$Xornada != 0, ]
+boxscore_perdida_Obra_2324 <- boxscore_perdida_Obra_2324[boxscore_perdida_Obra_2324$Xornada != 0, ]
+boxscore_RebOf_Obra_2324 <- boxscore_RebOf_Obra_2324[boxscore_RebOf_Obra_2324$Xornada != 0, ]
+
+df_Obra_2324$'%TL' <- boxscore_Obra_2324$`TL%...9`
+df_Obra_2324$Asist <- boxscore_Obra_2324$As...12
+df_Obra_2324$TO <- boxscore_Obra_2324$Pér...13
+df_Obra_2324$Rec <- boxscore_Obra_2324$Rec...14
+df_Obra_2324$TRea <- boxscore_Obra_2324$T.Rea...15
+df_Obra_2324$FRea <- boxscore_Obra_2324$F.Rea...17
+RebOf <- boxscore_Obra_2324$RO...10
+df_Obra_2324$Ptos_Perdida <- boxscore_perdida_Obra_2324$Pts...3
+df_Obra_2324$Ptos_RebOf <- boxscore_RebOf_Obra_2324$Pts...3
 
 head(df_Obra_2324)
+setwd("~/GCED/TFG/Datos")
 save(df_Obra_2324, file = "df_Obra_2324.RData")
 
+
+# Liga ACB 2022/23 Bilbao Basket
+PPP_Bilbao <- as.data.frame(read_csv("PPP_Bilbao.csv")[, c('Xornada', 'Valor Equipo', 'Valor Rival')])
+PPPos_Bilbao <- read_csv("PPPos_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+PPT_Bilbao <- read_csv("PPT_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+PPT2_Bilbao <- read_csv("PPT2_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+PPT3_Bilbao <- read_csv("PPT3_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+TAsist_Bilbao <- read_csv("TAsist_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+T2Asist_Bilbao <- read_csv("T2Asist_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+T3Asist_Bilbao <- read_csv("T3Asist_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+TL_Min_Bilbao <- read_csv("TL_Min_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+TL_F_Bilbao <- read_csv("TL_F_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+RebTot_Bilbao <- read_csv("RebTot_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+RebOf_Bilbao <- read_csv("RebOf_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+RebDef_Bilbao <- read_csv("RebDef_Bilbao.csv")[, c('Xornada', 'Valor Equipo')]
+boxscore_Bilbao <- read_csv("BS_Bilbao.csv")
+boxscore_perdida_Bilbao <- read_csv("BS_Per_Bilbao.csv")[, c('Xornada', 'Pts...3')]
+boxscore_RebOf_Bilbao <- read_csv("BS_RebOf_Bilbao.csv")[, c('Xornada', 'Pts...3')]
+TCInt_Bilbao <- c(48, 41, 40, 51, 37, 48, 46, 34, 35, 35, 33, 37, 36, 43, 38, 35, 43, 34, 50, 43, 45, 39, 31, 32, 40, 34, 28, 29, 33)
+TLInt_Bilbao <- c(17, 18, 13, 20, 26, 11, 28, 12, 23, 21, 20, 19, 8, 14, 30, 19, 18, 15, 6, 12, 21, 15, 18, 22, 22, 11, 25, 20, 11)
+Mins_Bilbao <- c(40, 40, 40, 40, 40, 40, 45, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40)
+
+PPP_Bilbao <- PPP_Bilbao[PPP_Bilbao$Xornada != 0, ]
+PPP_Bilbao$Resultado <- PPP_Bilbao$`Valor Equipo` - PPP_Bilbao$`Valor Rival`
+df_Bilbao <- PPP_Bilbao[, c('Xornada','Resultado')]
+
+df_Bilbao$PPPos <- df_Bilbao[df_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$PPT <- PPT_Bilbao[PPT_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$PPT2 <- PPT2_Bilbao[PPT2_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$PPT3 <- PPT3_Bilbao[PPT3_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$TAsist <- TAsist_Bilbao[TAsist_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$T2Asist <- T2Asist_Bilbao[T2Asist_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$T3Asist <- T3Asist_Bilbao[T3Asist_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$TL_Min <- TL_Min_Bilbao[TL_Min_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$TL_F <- TL_F_Bilbao[TL_F_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$RebTot <- RebTot_Bilbao[RebTot_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$RebOf <- RebOf_Bilbao[RebOf_Bilbao$Xornada != 0, ]$`Valor Equipo`
+df_Bilbao$RebDef <- RebDef_Bilbao[RebDef_Bilbao$Xornada != 0, ]$`Valor Equipo`
+
+boxscore_Bilbao <- boxscore_Bilbao[boxscore_Bilbao$Xornada != 0, ]
+boxscore_perdida_Bilbao <- boxscore_perdida_Bilbao[boxscore_perdida_Bilbao$Xornada != 0, ]
+boxscore_RebOf_Bilbao <- boxscore_RebOf_Bilbao[boxscore_RebOf_Bilbao$Xornada != 0, ]
+
+df_Bilbao$'%TL' <- boxscore_Bilbao$`TL%...9`
+df_Bilbao$Asist <- boxscore_Bilbao$As...12
+df_Bilbao$TO <- boxscore_Bilbao$Pér...13
+df_Bilbao$Rec <- boxscore_Bilbao$Rec...14
+df_Bilbao$TRea <- boxscore_Bilbao$T.Rea...15
+df_Bilbao$FRea <- boxscore_Bilbao$F.Rea...17
+RebOf <- boxscore_Bilbao$RO...10
+df_Bilbao$Ptos_Perdida <- boxscore_perdida_Bilbao$Pts...3
+df_Bilbao$Ptos_RebOf <- boxscore_RebOf_Bilbao$Pts...3
+
+df_Bilbao$RitmoXogo <- (TCInt_Bilbao + df_Bilbao$TO - RebOf + TLInt_Bilbao * 0.44) * 40 / Mins_Bilbao
+
+head(df_Bilbao)
+setwd("~/GCED/TFG/Datos")
+save(df_Bilbao, file = "df_Bilbao.RData")
 
 
 

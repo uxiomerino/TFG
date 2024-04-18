@@ -1,0 +1,73 @@
+---
+title: "Axuste Bilbao Basket"
+author: "Uxio Merino"
+date: "2024-04-16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+load("~/GCED/TFG/Datos/df_Bilbao.RData")
+
+head(df_Bilbao)
+
+axuste_Bilbao <- lm(Resultado ~ .-Xornada, data = df_Bilbao)
+summary(axuste_Bilbao)
+```
+
+```{r}
+plot(axuste_Bilbao)
+```
+
+## Selección de variables
+```{r}
+MOD_NULL <- lm(Resultado ~ 1, data = df_Bilbao)
+MOD_FULL <- axuste_Bilbao
+
+stepMod <- step(MOD_NULL, direction = "both", trace = 1,
+                scope = list(lower = MOD_NULL, 
+                             upper = MOD_FULL) )
+```
+## Modelo final segundo o AIC
+```{r}
+summary(stepMod)
+```
+
+```{r}
+library(car)
+vif(stepMod) # Moita coliñalidade, polo que eliminamos RebTot
+```
+
+```{r}
+axuste_Bilbao_final <- lm(Resultado ~ Asist + TL_F + RebOf + Ptos_Perdida + RebDef + TO + `%TL` + PPT2 + Rec, data = df_Bilbao)
+summary(axuste_Bilbao_final)
+```
+
+## Resultado final
+```{r}
+axuste_Bilbao_final <- lm(Resultado ~ Asist + TL_F + RebOf, data = df_Bilbao)
+summary(axuste_Bilbao_final)
+```
+
+```{r}
+coefs <- coef(axuste_Bilbao_final)[-1]
+barplot(coefs, main = "Peso das variables", ylab = "Peso", names.arg = names(coefs), col = "lightblue")
+```
+
+A variable máis relevante para as victorias de Bilbao Basket é a rentablidade que
+obteñen de cada falta, con un peso moi superior á media da liga. 
+En menor medida, tamén inflúen positivamente o número de Asistencias e o porcentaxe
+de Rebotes Ofensivos do equipo.
+
+
+
+
+## Validación do modelo
+
+```{r}
+plot(axuste_Bilbao_final)
+```

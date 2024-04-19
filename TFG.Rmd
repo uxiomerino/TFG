@@ -407,7 +407,6 @@ dend_colored <- color_branches(dend, h = 30)
 plot(dend_colored)
 ```
 
-
 ```{r}
 for (i in 1:4){
   for (j in 2:5){
@@ -708,7 +707,7 @@ head(df_combinaciones10)
 ```
 
 ```{r}
-pasoClusters <- function (df, Obxectivo){
+pasoClusters <- function (df){
   df_parcial <- df[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
   df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
   colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
@@ -725,12 +724,14 @@ pasoClusters <- function (df, Obxectivo){
     }
      df_quintetos[i, ] <- clusters_quinteto
   }
+  df_quintetos$Media <- df$Diferencia
+  return (df_quintetos)
   
-  df_quintetos$Media <- df$Obxectivo
-  head(df_quintetos)
 }
 
-pasoClusters(df_combinaciones10, Diferencia)
+df_quintetos <- pasoClusters(df_combinaciones10)
+
+head(df_quintetos)
 ```
 
 ```{r}
@@ -759,5 +760,30 @@ dim(df_combis_Obradoiro)
 
 ```{r}
 df_combis_Obradoiro[which.max(df_combis_Obradoiro$Diferencia), ]
+df_combis_Obradoiro[which.max(df_combis_Obradoiro$Minutos), ]
+df_combis_Obradoiro[which.min(df_combis_Obradoiro$Diferencia), ]
+df_combis_Obradoiro[which.min(df_combis_Obradoiro$Minutos), ]
 ```
+
+```{r}
+df_combis_Obradoiro <- df_combis_Obradoiro[df_combis_Obradoiro$Minutos > 5, ]
+dim(df_combis_Obradoiro)
+head(df_combis_Obradoiro)
+```
+
+```{r}
+df_quintetosObra <- pasoClusters(df_combis_Obradoiro)
+head(df_quintetosObra)
+```
+
+```{r}
+axuste_DiferenciaObra <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetosObra)
+summary(axuste_DiferenciaObra)
+```
+
+```{r}
+plot(axuste_DiferenciaObra)
+```
+
+
 

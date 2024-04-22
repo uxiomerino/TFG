@@ -498,23 +498,6 @@ df_clusters
 ```
 
 ```{r}
-frecuencias <- df_clusters %>%
-  group_by_at(vars(-Equipo, -Ano)) %>%
-  summarise(count = n(), .groups = 'drop') %>%
-  arrange(desc(count))
-
-# Visualizar a configuración máis repetida
-head(frecuencias, 2)
-
-# Número de configuracións diferentes
-print(nrow(frecuencias))
-
-# Verificar se algun cluster sempre ten representación
-clusters_sin_ceros <- apply(df_clusters[, -(1:2)], 2, function(x) all(x > 0))
-print(clusters_sin_ceros)
-```
-
-```{r}
 df_con_cluster <- df_dist
 df_con_cluster$CLUSTER <- clustered_jerarquico_euclideo$CLUSTER
 
@@ -532,7 +515,7 @@ busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 
 
 ## MODELOS DE REGRESIÓN:
 
-### Axuste cos equipos:
+### Axuste con todos os equipos:
 ```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
 
@@ -541,13 +524,9 @@ summary(axuste_victorias)
 ```
 
 ```{r}
-plot(axuste_victorias)
-
 library(car)
 # Prueba de VIF (variance inflation factor)
 print(vif(axuste_victorias))
-
-drop1(axuste_victorias, test = "Chisq")
 ```
 
 ```{r}
@@ -636,7 +615,7 @@ for (i in 1:nrow(df_combinaciones)) {
   ano <- df_combinaciones[i, "Ano"]
   xogadores_quinteto <- unlist(quinteto)
   
-  xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
+  xogadores_validos <- unique(df_union[df_union$Año == ano, "Xogador"])
   
   if (all(xogadores_quinteto %in% xogadores_validos)) {
     # Todos los jugadores de la fila están en la lista de jugadores válidos
@@ -709,7 +688,7 @@ df_combinaciones10 <- df_combinaciones10 %>%
 
 df_combinaciones10 <- df_combinaciones10[, -15]
 
-head(df_combinaciones10)
+tail(df_combinaciones10)
 ```
 
 ```{r}
@@ -787,7 +766,7 @@ FIV <- vif(stepMod)
 umbral <- 1/(1-summary(stepMod)$r.squared)
 print(FIV[FIV>umbral])
 
-cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'FRea', 'RebTot', 'TL_F', 'PPT3')])
+cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'TL_Min', 'TL_F', '%TL', 'Rec', 'FRea', 'Asist', 'TRea', 'RebTot', 'T3Asist', 'PPT3')])
 ```
 
 ```{r}
@@ -810,7 +789,7 @@ sum(residuals(stepMod)^2)/press(stepMod)
 ```
 
 ```{r}
-FIV <- vif(axuste_Obradoiro_victorias)
+FIV <- car::vif(axuste_Obradoiro_victorias)
 umbral <- 1/(1-summary(axuste_Obradoiro_victorias)$r.squared)
 print(FIV[FIV>umbral])
 
@@ -911,6 +890,7 @@ RebTot_Obradoiro$Cluster5 <- cluster_5
 
 quintetosRebTot_obra <- pasoClusters(RebTot_Obradoiro)
 quintetosRebTot_obra$Metrica <- RebTot_Obradoiro$`Valor Equipo`
+quintetosRebTot_obra$Minutos <- RebTot_Obradoiro$Minutos
 
 head(quintetosRebTot_obra)
 ```
@@ -919,4 +899,28 @@ head(quintetosRebTot_obra)
 axuste_Rebotes <- lm(Metrica~C1+C2+C3+C4+C5+C6, data = quintetosRebTot_obra)
 summary(axuste_Rebotes)
 ```
+
+
+```{r}
+df_suma <- aggregate(Minutos ~ C1+C2+C3+C4+C5+C6, data = quintetosRebTot_obra, FUN = sum)
+df_suma <- df_suma[order(df_suma$Minutos, decreasing = TRUE), ]
+head(df_suma)
+nrow(df_suma)
+```
+
+
+```{r}
+frecuencias <- quintetosRebTot_obra %>%
+  group_by_at(vars(-Metrica, -Minutos)) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  arrange(desc(count))
+
+# Visualizar a configuración máis repetida
+head(frecuencias)
+
+# Número de configuracións diferentes
+print(nrow(frecuencias))
+```
+
+
 

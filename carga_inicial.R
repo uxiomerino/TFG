@@ -366,3 +366,14 @@ df_RebDef <- rbind(RebDef_1[ , c('Xogadores', 'Equipo', 'Minutos', 'Media')], Re
 head(df_RebDef)
 save(df_RebDef, file = "df_RebDef.RData")
 
+
+
+
+
+# Vars Obradoiro
+RebTot_Obradoiro <- read_csv("RebTot_Obradoiro.csv")[, c("Xogadores","Minutos","Valor Equipo")]
+head(RebTot_Obradoiro)
+setwd("~/GCED/TFG/Datos")
+save(RebTot_Obradoiro, file = "RebTot_Obradoiro.RData")
+
+

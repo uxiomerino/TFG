@@ -471,7 +471,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 4, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 2, ]
 ```
 
 
@@ -564,7 +564,9 @@ summary(stepMod)
 ```
 
 ```{r}
-vif(stepMod)
+FIV <- vif(stepMod)
+umbral <- 1/(1-summary(stepMod)$r.squared)
+print(FIV[FIV>umbral])
 ```
 
 ```{r}
@@ -575,8 +577,13 @@ summary(axuste_victorias_final)
 ```{r}
 axuste_victorias_final <- lm(Resultado ~ PPT + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F, data =df_equipos)
 summary(axuste_victorias_final)
-vif(axuste_victorias_final)
 plot(axuste_victorias_final)
+```
+
+```{r}
+FIV <- vif(axuste_victorias_final)
+umbral <- 1/(1-summary(axuste_victorias_final)$r.squared)
+print(FIV[FIV>umbral])
 ```
 
 ```{r}
@@ -682,7 +689,6 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 df_combinaciones10 <- df_combinaciones[df_combinaciones$Minutos > 10, ]
 head(df_combinaciones10)
 tail(df_combinaciones10)
-n_miss(df_combinaciones10)
 ```
 
 ```{r}
@@ -735,7 +741,7 @@ head(df_quintetos)
 ```
 
 ```{r}
-axuste_Diferencia <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetos)
+axuste_Diferencia <- lm(Media~C1+C2+C3+C4+C5+C6, data = df_quintetos)
 summary(axuste_Diferencia)
 ```
 
@@ -747,15 +753,109 @@ plot(axuste_Diferencia)
 shapiro.test(axuste_Diferencia$residuals)
 ```
 
-
-
-
 ### Axuste específico Obradoiro
+
+
+```{r}
+load("~/GCED/TFG/Datos/df_Obra_2324.RData")
+
+dim(df_Obra_2324)
+head(df_Obra_2324)
+tail(df_Obra_2324)
+```
+
+```{r}
+axuste_Obradoiro_victorias <- lm(Resultado ~ .-Xornada, data = df_Obra_2324)
+summary(axuste_Obradoiro_victorias)
+```
+
+```{r}
+MOD_NULL <- lm(Resultado ~ 1, data = df_Obra_2324)
+MOD_FULL <- axuste_Obradoiro_victorias
+
+stepMod <- step(MOD_NULL, direction = "forward", trace = 1,
+                scope = list(lower = MOD_NULL, 
+                             upper = MOD_FULL) )
+```
+
+```{r}
+summary(stepMod)
+```
+
+```{r}
+FIV <- vif(stepMod)
+umbral <- 1/(1-summary(stepMod)$r.squared)
+print(FIV[FIV>umbral])
+
+cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'FRea', 'RebTot', 'TL_F', 'PPT3')])
+```
+
+```{r}
+axuste_Obradoiro_victorias <- lm(Resultado ~ Ptos_Perdida + TO + FRea + RebTot, data = df_Obra_2324)
+summary(axuste_Obradoiro_victorias)
+```
+
+### Bondade do axuste
+
+```{r}
+library(DAAG)
+summary(axuste_Obradoiro_victorias)$r.squared
+summary(axuste_Obradoiro_victorias)$adj.r.squared
+
+# Mellor coeficiente de robustez que co modelo completo
+sum(residuals(axuste_Obradoiro_victorias)^2)/press(axuste_Obradoiro_victorias)
+sum(residuals(MOD_FULL)^2)/press(MOD_FULL)
+# Mellor coeficiente de robustez tras a eliminación das vars non significativas
+sum(residuals(stepMod)^2)/press(stepMod)
+```
+
+```{r}
+FIV <- vif(axuste_Obradoiro_victorias)
+umbral <- 1/(1-summary(axuste_Obradoiro_victorias)$r.squared)
+print(FIV[FIV>umbral])
+
+cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'FRea', 'RebTot')])
+```
+
+### Diagnose do modelo
+```{r}
+plot(axuste_Obradoiro_victorias)
+```
+
+### Liñalidade
+```{r}
+scatter.smooth(axuste_Obradoiro_victorias$fit, residuals(axuste_Obradoiro_victorias), main="Residuos ~ Axustados", 
+               xlab="Ajustados",ylab="Residuos", pch = 21, 
+               bg = "green", cex.lab=1.5, cex=1.4, cex.main=1.5, 
+               lpars = list(col = "magenta", lwd = 3) )
+abline(h=0,lty=2,lwd=2)
+```
+
+### Normalidade
+```{r}
+shapiro.test(axuste_Obradoiro_victorias$residuals)
+```
+
+### Homoscedasticidade
+```{r}
+ncvTest(axuste_Obradoiro_victorias)
+```
+
+### Aleatoriedade
+```{r}
+Box.test(axuste_Obradoiro_victorias$residuals, lag = 5, type = "Ljung-Box")
+```
+
+
+
+
+
+
 
 ```{r}
 df_combis_Obradoiro <- df_combinaciones[df_combinaciones$Equipo == "Monbus Obradoiro" & df_combinaciones$Ano == "2023/24", ]
-head(df_combis_Obradoiro)
 dim(df_combis_Obradoiro)
+head(df_combis_Obradoiro)
 ```
 
 ```{r}
@@ -766,18 +866,18 @@ df_combis_Obradoiro[which.min(df_combis_Obradoiro$Minutos), ]
 ```
 
 ```{r}
-df_combis_Obradoiro <- df_combis_Obradoiro[df_combis_Obradoiro$Minutos > 5, ]
-dim(df_combis_Obradoiro)
-head(df_combis_Obradoiro)
+df_combis_Obradoiro5 <- df_combis_Obradoiro[df_combis_Obradoiro$Minutos > 5, ]
+dim(df_combis_Obradoiro5)
+head(df_combis_Obradoiro5)
 ```
 
 ```{r}
-df_quintetosObra <- pasoClusters(df_combis_Obradoiro)
+df_quintetosObra <- pasoClusters(df_combis_Obradoiro5)
 head(df_quintetosObra)
 ```
 
 ```{r}
-axuste_DiferenciaObra <- lm(Media~C1*C2*C3*C4*C5*C6, data = df_quintetosObra)
+axuste_DiferenciaObra <- lm(Media~C1+C2+C3+C4+C5+C6, data = df_quintetosObra)
 summary(axuste_DiferenciaObra)
 ```
 

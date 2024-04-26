@@ -16,13 +16,11 @@ Funcionalidades do código a implementar ou correxir:
         * Análise dos perfís que ten o Obradoiro (en contraposición cos de outros equipos) *FEITO* <br>
         * Mellor agrupación: **CLUSTERING XERÁRQUICO, distancia euclídea método de Ward2**
   - **Punto 3: Regresión** : <br>
-      * Datos de quintetos de 22/23 listo, descargar e xuntar os datos da 23/24 <br>
-      * Buscar a configuración óptima de quintetos a través de modelo de regresión: <br>
-          - Búsqueda de **vars de equipo signif para a victoria**, e búsqueda de **clusters signif para esas vars** *FEITO* <br>
-          - Interaccións son importantes, probar os modelos con elas e **entender ben os resultados** <br>
-          - **Transformación de variables?** <br>
-          - **Selección de variables** <br>
-          - Probar **modelos non paramétricos** <br>
-          - Probar outras opcións: **modelos polinómicos, RandomForest...**
-      * Variable obxectivo: +/- do quinteto **con respecto da media do equipo** *FEITO* <br> 
-      * **Ter en conta o rival** a través dalgunha medida <br> 
+        * Axuste específico Obradoiro CAB:<br>
+          - Realizar un corte dos minutos por quinteto, paso dese quinteto a clusters <br>
+          - Agrupar os quintetos por clusters <br>
+          - Axustar un modelo de regresión coas variables por equipo máis significativas na diferencia de puntos <br>
+          - Obter os valores das agrupacións de quintetos nesas variables e a diferencia total <br>
+          - Sacar a predición para esa configuración segundo o modelo anterior <br>
+        * Axuste global: <br>
+          - Repetir o anterior con todos os quintetos do global dos equipos, menos coas configuracions xa probadas polo Obradoiro <br>

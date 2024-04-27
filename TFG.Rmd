@@ -734,7 +734,6 @@ shapiro.test(axuste_Diferencia$residuals)
 ## Axuste específico Obradoiro
 
 ### Análise coa diferencia
-
 ```{r}
 combinaciones_obradoiro <- df_combinaciones[df_combinaciones$Equipo == "Monbus Obradoiro" & df_combinaciones$Ano == "2023/24", ]
 combinaciones_obradoiro <- combinaciones_obradoiro[combinaciones_obradoiro$Minutos > 10, ]
@@ -793,7 +792,7 @@ cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'TL_Min', 'TL_F', '%TL', 'Rec', 'FRea
 ```
 
 ```{r}
-axuste_Obradoiro_victorias <- lm(Resultado ~ Ptos_Perdida + TO + FRea + RebTot, data = df_Obra_2324)
+axuste_Obradoiro_victorias <- lm(Resultado ~ Ptos_Perdida + TO + FRea + RebTot + TL_Min, data = df_Obra_2324)
 summary(axuste_Obradoiro_victorias)
 ```
 
@@ -804,8 +803,8 @@ library(DAAG)
 summary(axuste_Obradoiro_victorias)$r.squared
 summary(axuste_Obradoiro_victorias)$adj.r.squared
 
-# Mellor coeficiente de robustez que co modelo completo
 sum(residuals(axuste_Obradoiro_victorias)^2)/press(axuste_Obradoiro_victorias)
+# Mellor coeficiente de robustez que co modelo completo
 sum(residuals(MOD_FULL)^2)/press(MOD_FULL)
 # Mellor coeficiente de robustez tras a eliminación das vars non significativas
 sum(residuals(stepMod)^2)/press(stepMod)
@@ -919,9 +918,8 @@ head(quintetosRebTot_obra)
 
 ```{r}
 axuste_Rebotes <- lm(Metrica~C1+C2+C3+C4+C5+C6, data = quintetosRebTot_obra)
-summary(axuste_Rebotes)
+summary(axuste_Rebotes) # Multicoliñalidade perfecta, que facer?
 ```
-
 
 ```{r}
 frecuencias <- quintetosRebTot_obra %>%
@@ -935,6 +933,4 @@ head(frecuencias)
 # Número de configuracións diferentes
 print(nrow(frecuencias))
 ```
-
-
 

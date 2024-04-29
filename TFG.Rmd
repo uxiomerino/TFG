@@ -96,7 +96,7 @@ nrow(pares_correlados) / ((nrow(cor_matrix)^2)/2)
 ```
 
 
-PCA:
+# PCA:
 ```{r}
 library(factoextra)
 library(plotly)
@@ -149,7 +149,6 @@ topN[1]
 minN[1]
 ```
 
- 
 ```{r}
 sort(loadings[, 2], decreasing = TRUE)
 barplot(loadings[, 2], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 2",
@@ -515,7 +514,7 @@ busqueda_xogadores_cercanos(df_con_cluster, "20 NICO LAPROVITTOLA", distancia = 
 
 ## MODELOS DE REGRESIÓN:
 
-### Axuste con todos os equipos:
+### Axuste cos equipos:
 ```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
 
@@ -525,7 +524,6 @@ summary(axuste_victorias)
 
 ```{r}
 library(car)
-# Prueba de VIF (variance inflation factor)
 print(vif(axuste_victorias))
 ```
 
@@ -573,8 +571,6 @@ shapiro.test(axuste_victorias_final$residuals)
 im <- influence.measures(axuste_victorias_final)
 summary(im)
 ```
-
-## Introducir axuste Bilbao Basket aquí para a mostra
 
 
 ### Axuste xogadores
@@ -691,7 +687,7 @@ tail(df_combinaciones10)
 
 ```{r}
 pasoClusters <- function (df){
-  df_parcial <- df[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
+  df_parcial <- df[,c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
   df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
   colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
   
@@ -718,41 +714,130 @@ df_quintetos <- pasoClusters(df_combinaciones10)
 head(df_quintetos)
 ```
 
+
+
+### Proba modelos Machine Learning:
 ```{r}
-axuste_Diferencia <- lm(Media~C1+C2+C3+C4+C5+C6, data = df_quintetos)
-summary(axuste_Diferencia)
+set.seed(123)
+
+tamano_adestram <- round(0.8 * nrow(df_quintetos))
+
+indices_adestram <- sample(1:nrow(df_quintetos), tamano_adestram, replace = FALSE)
+
+train_quintetos <- df_quintetos[indices_adestram, ]
+test_quintetos <- df_quintetos[-indices_adestram, ]
 ```
 
 ```{r}
-plot(axuste_Diferencia)
+library(randomForest)
+
+# Ajustar un bosque aleatorio
+modelo_rf <- randomForest(Media ~ .-Minutos, data = train_quintetos)
+importance(modelo_rf, type = 2)
 ```
 
 ```{r}
-shapiro.test(axuste_Diferencia$residuals)
+# Calcular las predicciones del modelo en el conjunto de prueba
+predicions <- predict(modelo_rf, newdata = test_quintetos)
+
+# Calcular el error cuadrático para cada observación
+errores_absolutos <- abs(predicions - test_quintetos$Media)
+
+# Calcular el error cuadrático medio
+mae <- mean(errores_absolutos)
+
+# Imprimir el MSE
+print(paste("Error Absoluto Medio (MAE):", mae))
 ```
+
 
 ## Axuste específico Obradoiro
 
 ### Análise coa diferencia
 ```{r}
 combinaciones_obradoiro <- df_combinaciones[df_combinaciones$Equipo == "Monbus Obradoiro" & df_combinaciones$Ano == "2023/24", ]
-combinaciones_obradoiro <- combinaciones_obradoiro[combinaciones_obradoiro$Minutos > 10, ]
-head(combinaciones_obradoiro)
+combinaciones_obradoiro <- combinaciones_obradoiro[combinaciones_obradoiro$Minutos > 5, ]
+combinaciones_obradoiro
 ```
 
 ```{r}
 quintetos_obradoiro <- pasoClusters(combinaciones_obradoiro)
-head(quintetos_obradoiro)
+quintetos_obradoiro
+```
+
+
+```{r}
+library(randomForest)
+library(caret)
+
+quintetos_obradoiro <- quintetos_obradoiro[, -8]
+tamano_adestram <- round(0.8 * nrow(quintetos_obradoiro))
+set.seed(123)
+indices_adestram <- sample(1:nrow(quintetos_obradoiro), tamano_adestram, replace = FALSE)
+train_obra <- quintetos_obradoiro[indices_adestram, ]
+test_obra <- quintetos_obradoiro[-indices_adestram, ]
+
+# Crear el modelo de regresión utilizando Random Forest
+modelo_rf <- train(Media ~ ., data = train_obra, method = "rf", trControl = trainControl(method = "cv", number = 15))
+modelo_rf
 ```
 
 ```{r}
-agrupaciones_obradoiro <- quintetos_obradoiro %>%
-  group_by(C1, C2, C3, C4, C5, C6) %>%
-  summarize(Suma_Media = sum(Media), Suma_Minutos = sum(Minutos)) %>%
-  arrange(desc(Suma_Media))
+clusters_obra <- df_clusters[df_clusters$Equipo == "Monbus Obradoiro"&df_clusters$Ano == "2023/24", c(3, 4, 5, 6, 7, 8)]
+total_individuos <- sum(clusters_obra)
 
-print(agrupaciones_obradoiro)
+individuos_seleccionados <- 5
+
+# Generar todas las combinaciones posibles de individuos
+combinaciones <- combn(total_individuos, individuos_seleccionados, simplify = F)
+
+traducion <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" &
+                                        ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ] 
+
+mapear_a_cluster <- function(numero) {
+  return(traducion$CLUSTER[numero])
+}
+
+combinaciones_cluster <- lapply(combinaciones, mapear_a_cluster)
+combinaciones_cluster <- do.call(rbind, combinaciones_cluster)
+combinaciones_cluster <- as.data.frame(combinaciones_cluster)
+head(combinaciones_cluster)
 ```
+
+```{r}
+combinaciones <- data.frame(matrix(ncol = 6, nrow = nrow(combinaciones_cluster)))
+for (i in (1:nrow(combinaciones_cluster))){
+  clusters_quinteto <- numeric(6)
+  for (j in (1:ncol(combinaciones_cluster))){
+    if (combinaciones_cluster[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
+    if (combinaciones_cluster[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
+    if (combinaciones_cluster[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
+    if (combinaciones_cluster[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
+    if (combinaciones_cluster[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
+    if (combinaciones_cluster[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+  }
+   combinaciones[i, ] <- clusters_quinteto
+}
+
+combinaciones <- unique(combinaciones)
+colnames(combinaciones) <- c("C1", "C2", "C3", "C4", "C5", "C6")
+head(combinaciones)
+```
+
+
+```{r}
+predicions <- predict(randomForestObra, newdata = combinaciones)
+
+orden <- order(predicions, decreasing = TRUE)
+combinaciones[orden[1:10], ]
+```
+
+```{r}
+traducion
+```
+
+
+
 
 
 
@@ -845,92 +930,3 @@ ncvTest(axuste_Obradoiro_victorias)
 ```{r}
 Box.test(axuste_Obradoiro_victorias$residuals, lag = 5, type = "Ljung-Box")
 ```
-
-
-
-## Axuste cos xogadores nas vars significativas
-```{r}
-load("~/GCED/TFG/Datos/RebTot_Obradoiro.RData")
-head(RebTot_Obradoiro)
-```
-
-```{r}
-RebTot_Obradoiro <- separate(RebTot_Obradoiro, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
-n_miss(RebTot_Obradoiro)
-head(RebTot_Obradoiro)
-tail(RebTot_Obradoiro)
-```
-
-
-
-```{r}
-RebTot_Obradoiro <- RebTot_Obradoiro[RebTot_Obradoiro$Minutos > 10, ]
-
-cluster_1 <- c()
-cluster_2 <- c()
-cluster_3 <- c()
-cluster_4 <- c()
-cluster_5 <- c()
-
-indices <- c()
-
-for (i in 1:nrow(RebTot_Obradoiro)) {
-  quinteto <- RebTot_Obradoiro[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
-  xogadores_quinteto <- unlist(quinteto)
-  
-  xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
-  
-  if (all(xogadores_quinteto %in% xogadores_validos)) {
-    # Todos los jugadores de la fila están en la lista de jugadores válidos
-    clusters_quinteto <- c()
-    for (xogador in xogadores_quinteto) {
-      cluster <- ordered_clustered_jerarquico_euclideo$CLUSTER[ordered_clustered_jerarquico_euclideo$Xogador == xogador 
-                                                               & ordered_clustered_jerarquico_euclideo$Ano == "2023/24"]
-      clusters_quinteto <- c(clusters_quinteto, cluster)
-    }
-    cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
-    cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
-    cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
-    cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
-    cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
-    
-  } else {
-    # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
-    indices <- c(indices, i)
-  }
-}
-
-
-RebTot_Obradoiro <- RebTot_Obradoiro[-indices, ]
-
-RebTot_Obradoiro$Cluster1 <- cluster_1
-RebTot_Obradoiro$Cluster2 <- cluster_2
-RebTot_Obradoiro$Cluster3 <- cluster_3
-RebTot_Obradoiro$Cluster4 <- cluster_4
-RebTot_Obradoiro$Cluster5 <- cluster_5
-
-quintetosRebTot_obra <- pasoClusters(RebTot_Obradoiro)
-quintetosRebTot_obra$Metrica <- RebTot_Obradoiro$`Valor Equipo`
-quintetosRebTot_obra$Minutos <- RebTot_Obradoiro$Minutos
-
-head(quintetosRebTot_obra)
-```
-
-```{r}
-axuste_Rebotes <- lm(Metrica~C1+C2+C3+C4+C5+C6, data = quintetosRebTot_obra)
-summary(axuste_Rebotes) # Multicoliñalidade perfecta, que facer?
-```
-
-```{r}
-frecuencias <- quintetosRebTot_obra %>%
-  group_by_at(vars(-Metrica, -Minutos)) %>%
-  summarise(count = n(), .groups = 'drop') %>%
-  arrange(desc(count))
-
-# Visualizar a configuración máis repetida
-head(frecuencias)
-
-# Número de configuracións diferentes
-print(nrow(frecuencias))
-```
-

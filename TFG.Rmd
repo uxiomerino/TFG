@@ -592,7 +592,7 @@ tail(df_combinaciones)
 
 ```{r}
 df_combinaciones[which.max(df_combinaciones$Minutos), ]
-df_combinaciones[which.max(df_combinaciones$Media), ]
+df_combinaciones[which.max(df_combinaciones$Diferencia), ]
 df_combinaciones[which.min(df_combinaciones$Minutos), ]
 ```
 
@@ -660,6 +660,7 @@ length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot d
 
 ```{r}
 df_combinaciones10 <- df_combinaciones[df_combinaciones$Minutos > 10, ]
+dim(df_combinaciones10)
 head(df_combinaciones10)
 tail(df_combinaciones10)
 ```
@@ -704,7 +705,7 @@ pasoClusters <- function (df){
      df_quintetos[i, ] <- clusters_quinteto
   }
   df_quintetos$Media <- df$Diferencia
-  df_quintetos$Minutos <- df$Minutos
+  #df_quintetos$Minutos <- df$Minutos
   return (df_quintetos)
   
 }
@@ -715,10 +716,9 @@ head(df_quintetos)
 ```
 
 
-
 ### Proba modelos Machine Learning:
 ```{r}
-set.seed(123)
+set.seed(32725752)
 
 tamano_adestram <- round(0.8 * nrow(df_quintetos))
 
@@ -731,27 +731,35 @@ test_quintetos <- df_quintetos[-indices_adestram, ]
 ```{r}
 library(randomForest)
 
-# Ajustar un bosque aleatorio
-modelo_rf <- randomForest(Media ~ .-Minutos, data = train_quintetos)
-importance(modelo_rf, type = 2)
+tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4, 5, 6))
+modelo_rf <- train(Media ~ ., data = train_quintetos, method = "rf", trControl = trainControl(method = "cv", number = 15), tuneGrid = tuneGrid)
+modelo_rf
 ```
 
 ```{r}
 # Calcular las predicciones del modelo en el conjunto de prueba
 predicions <- predict(modelo_rf, newdata = test_quintetos)
 
-# Calcular el error cuadrático para cada observación
-errores_absolutos <- abs(predicions - test_quintetos$Media)
+mse <- mean((test_quintetos$Media - predicions)^2)
 
-# Calcular el error cuadrático medio
-mae <- mean(errores_absolutos)
+# Calcular MAE
+mae <- mean(abs(test_quintetos$Media - predicions))
 
-# Imprimir el MSE
-print(paste("Error Absoluto Medio (MAE):", mae))
+# Calcular RMSE
+rmse <- sqrt(mse)
+
+# Calcular R cuadrado
+r_cuadrado <- cor(test_quintetos$Media, predicions)^2
+
+# Mostrar los resultados
+print(paste("MSE:", mse))
+print(paste("MAE:", mae))
+print(paste("RMSE:", rmse))
+print(paste("R cuadrado:", r_cuadrado))
 ```
 
 
-## Axuste específico Obradoiro
+## Axuste específico Obradoiro e optimización Obradoiro
 
 ### Análise coa diferencia
 ```{r}
@@ -765,25 +773,124 @@ quintetos_obradoiro <- pasoClusters(combinaciones_obradoiro)
 quintetos_obradoiro
 ```
 
-
 ```{r}
 library(randomForest)
 library(caret)
 
 quintetos_obradoiro <- quintetos_obradoiro[, -8]
 tamano_adestram <- round(0.8 * nrow(quintetos_obradoiro))
-set.seed(123)
+set.seed(999)
 indices_adestram <- sample(1:nrow(quintetos_obradoiro), tamano_adestram, replace = FALSE)
 train_obra <- quintetos_obradoiro[indices_adestram, ]
 test_obra <- quintetos_obradoiro[-indices_adestram, ]
-
+tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4, 5, 6))
 # Crear el modelo de regresión utilizando Random Forest
-modelo_rf <- train(Media ~ ., data = train_obra, method = "rf", trControl = trainControl(method = "cv", number = 15))
-modelo_rf
+randomForestObra <- train(Media ~ ., data = train_obra, method = "rf", trControl = trainControl(method = "cv", number = 5), metric = "Rsquared", tuneGrid = tuneGrid)
+randomForestObra
 ```
 
 ```{r}
-clusters_obra <- df_clusters[df_clusters$Equipo == "Monbus Obradoiro"&df_clusters$Ano == "2023/24", c(3, 4, 5, 6, 7, 8)]
+predicciones <- predict(randomForestObra, newdata = test_obra)
+
+# Calcular MSE
+mse <- mean((test_obra$Media - predicciones)^2)
+
+# Calcular MAE
+mae <- mean(abs(test_obra$Media - predicciones))
+
+# Calcular RMSE
+rmse <- sqrt(mse)
+
+# Calcular R cuadrado
+r_cuadrado <- cor(test_obra$Media, predicciones)^2
+
+# Mostrar los resultados
+print(paste("MSE:", mse))
+print(paste("MAE:", mae))
+print(paste("RMSE:", rmse))
+print(paste("R cuadrado:", r_cuadrado))
+```
+
+## Proba con SVM:
+```{r}
+library(e1071)
+
+x_train <- train_obra[, -7]  
+y_train <- train_obra[, 7]
+x_test <- test_obra[, -7]
+y_test <- test_obra[, 7]
+
+# Define los posibles valores de hiperparámetros a probar
+hyperparams <- list(C = c(1, 1.2, 1.45, 1.5, 1.55, 1.7, 2, 2.1, 2.25, 2.5, 2.75, 2.9, 3),
+                    epsilon = c(0.0325, 0.035, 0.0375, 0.05, 0.1, 0.125, 0.15, 0.175, 0.2),
+                    kernel = c("linear", "polynomial", "radial", "sigmoid"), 
+                    degree = c(1, 3, 5, 7, 9, 11),
+                    coef0 = c(0, 1, 2),
+                    scale = c(T, F),
+                    folds = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+
+# Realiza la búsqueda de cuadrícula
+best_model <- NULL
+best_r2 <- 0
+best_mse <- Inf
+best_mae <- Inf
+
+set.seed(32725752)
+
+for (C in hyperparams$C) {
+  for (epsilon in hyperparams$epsilon) {
+    for (kernel in hyperparams$kernel) {
+      for (fold in hyperparams$folds) {
+        for (degree in hyperparams$degree){
+          for (coef in hyperparams$coef0){
+            for (scale in hyperparams$scale){
+              model <- svm(x_train, y_train, kernel = kernel, cost = C, degree = degree, coef0 = coef, epsilon = epsilon)
+              pred <- predict(model, x_test)
+              mse <- mean((y_test - pred)^2)
+              r2 <- cor(y_test, pred)^2
+              mae <- mean(abs(y_test-pred))
+              
+              if (mse<best_mse) {
+                best_r2 <- r2
+                best_error <- error
+                best_mae <- mae
+                best_model <- model
+                best_hyperparams <- list(C = C, epsilon = epsilon, kernel = kernel, folds = fold, degree = degree, coef = coef, scale = scale)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# Imprime los mejores hiperparámetros encontrados
+print("Mejores hiperparámetros:")
+print(best_hyperparams)
+
+# Evalúa el modelo en los datos de prueba
+test_pred <- predict(best_model, x_test)
+ECM <- mean((y_test - test_pred)^2)
+EAM <- mean(abs(y_test - test_pred))
+r2 <- cor(y_test, test_pred)^2
+rmse <- sqrt(mean((y_test - test_pred)^2))
+print(paste("ECM en test:", ECM))
+print(paste("EAM en test:", EAM))
+print(paste("RMSE en test:", rmse))
+print(paste("R cuadrado:", r2))
+```
+
+
+
+
+
+
+
+
+
+```{r}
+clusters_obra <- df_clusters[df_clusters$Equipo == "Monbus Obradoiro" & df_clusters$Ano == "2023/24", c(3, 4, 5, 6, 7, 8)]
 total_individuos <- sum(clusters_obra)
 
 individuos_seleccionados <- 5
@@ -824,12 +931,14 @@ colnames(combinaciones) <- c("C1", "C2", "C3", "C4", "C5", "C6")
 head(combinaciones)
 ```
 
-
 ```{r}
-predicions <- predict(randomForestObra, newdata = combinaciones)
-
+#predicions <- predict(randomForestObra, newdata = combinaciones)
+predicions <- predict(best_model, newdata = combinaciones)
 orden <- order(predicions, decreasing = TRUE)
-combinaciones[orden[1:10], ]
+
+combinacions_top <- combinaciones[orden[1:5], ]
+combinacions_top$predicions <- predicions[orden[1:5]]
+combinacions_top
 ```
 
 ```{r}

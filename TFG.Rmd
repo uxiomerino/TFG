@@ -584,7 +584,6 @@ tail(quintetos)
 ```
 
 ```{r}
-library(tidyr)
 df_combinaciones <- separate(quintetos, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
 n_miss(df_combinaciones)
 tail(df_combinaciones)
@@ -717,145 +716,197 @@ head(df_quintetos)
 
 
 ### Proba modelos Machine Learning:
-```{r}
-set.seed(32725752)
 
-tamano_adestram <- round(0.8 * nrow(df_quintetos))
 
-indices_adestram <- sample(1:nrow(df_quintetos), tamano_adestram, replace = FALSE)
 
-train_quintetos <- df_quintetos[indices_adestram, ]
-test_quintetos <- df_quintetos[-indices_adestram, ]
-```
-
-```{r}
-library(randomForest)
-
-tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4, 5, 6))
-modelo_rf <- train(Media ~ ., data = train_quintetos, method = "rf", trControl = trainControl(method = "cv", number = 15), tuneGrid = tuneGrid)
-modelo_rf
-```
-
-```{r}
-# Calcular las predicciones del modelo en el conjunto de prueba
-predicions <- predict(modelo_rf, newdata = test_quintetos)
-
-mse <- mean((test_quintetos$Media - predicions)^2)
-
-# Calcular MAE
-mae <- mean(abs(test_quintetos$Media - predicions))
-
-# Calcular RMSE
-rmse <- sqrt(mse)
-
-# Calcular R cuadrado
-r_cuadrado <- cor(test_quintetos$Media, predicions)^2
-
-# Mostrar los resultados
-print(paste("MSE:", mse))
-print(paste("MAE:", mae))
-print(paste("RMSE:", rmse))
-print(paste("R cuadrado:", r_cuadrado))
-```
 
 
 ## Axuste específico Obradoiro e optimización Obradoiro
 
 ### Análise coa diferencia
 ```{r}
-combinaciones_obradoiro <- df_combinaciones[df_combinaciones$Equipo == "Monbus Obradoiro" & df_combinaciones$Ano == "2023/24", ]
-combinaciones_obradoiro <- combinaciones_obradoiro[combinaciones_obradoiro$Minutos > 5, ]
-combinaciones_obradoiro
-```
-
-```{r}
-quintetos_obradoiro <- pasoClusters(combinaciones_obradoiro)
+load("~/GCED/TFG/Datos/quintetos_obradoiro.RData")
+quintetos_obradoiro <- quintetos_obradoiro[quintetos_obradoiro$Minutos > 5, ]
 quintetos_obradoiro
 ```
 
 ```{r}
-library(randomForest)
-library(caret)
+# Preparación do data frame:
 
-quintetos_obradoiro <- quintetos_obradoiro[, -8]
-tamano_adestram <- round(0.8 * nrow(quintetos_obradoiro))
-set.seed(999)
-indices_adestram <- sample(1:nrow(quintetos_obradoiro), tamano_adestram, replace = FALSE)
-train_obra <- quintetos_obradoiro[indices_adestram, ]
-test_obra <- quintetos_obradoiro[-indices_adestram, ]
-tuneGrid <- expand.grid(mtry = c(1, 2, 3, 4, 5, 6))
-# Crear el modelo de regresión utilizando Random Forest
-randomForestObra <- train(Media ~ ., data = train_obra, method = "rf", trControl = trainControl(method = "cv", number = 5), metric = "Rsquared", tuneGrid = tuneGrid)
-randomForestObra
+quintetos_obradoiro <- separate(quintetos_obradoiro, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+
+cluster_1 <- c()
+cluster_2 <- c()
+cluster_3 <- c()
+cluster_4 <- c()
+cluster_5 <- c()
+
+indices <- c()
+
+for (i in 1:nrow(quintetos_obradoiro)) {
+  quinteto <- quintetos_obradoiro[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
+  xogadores_quinteto <- unlist(quinteto)
+  
+  xogadores_validos <- unique(df_union[df_union$Año == "2023/24" & df_union$Equipo == "Monbus Obradoiro", "Xogador"])
+  
+  if (all(xogadores_quinteto %in% xogadores_validos)) {
+    # Todos los jugadores de la fila están en la lista de jugadores válidos
+    clusters_quinteto <- c()
+    for (xogador in xogadores_quinteto) {
+      cluster <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Ano == "2023/24"
+                                                       & ordered_clustered_jerarquico_euclideo$Xogador == xogador , "CLUSTER"]
+      clusters_quinteto <- c(clusters_quinteto, cluster)
+    }
+    cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
+    cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
+    cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
+    cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
+    cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
+    
+  } else {
+    # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
+    indices <- c(indices, i)
+  }
+}
+
+
+quintetos_obradoiro <- quintetos_obradoiro[-indices, ]
+
+quintetos_obradoiro$Cluster1 <- cluster_1
+quintetos_obradoiro$Cluster2 <- cluster_2
+quintetos_obradoiro$Cluster3 <- cluster_3
+quintetos_obradoiro$Cluster4 <- cluster_4
+quintetos_obradoiro$Cluster5 <- cluster_5
+
+quintetos_obradoiro$Cluster1 <- as.factor(quintetos_obradoiro$Cluster1)
+quintetos_obradoiro$Cluster2 <- as.factor(quintetos_obradoiro$Cluster2)
+quintetos_obradoiro$Cluster3 <- as.factor(quintetos_obradoiro$Cluster3)
+quintetos_obradoiro$Cluster4 <- as.factor(quintetos_obradoiro$Cluster4)
+quintetos_obradoiro$Cluster5 <- as.factor(quintetos_obradoiro$Cluster5)
+
+quintetos_obradoiro <- quintetos_obradoiro[, -c(1, 2, 3, 4, 5, 6)]
+
+df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(quintetos_obradoiro)))
+colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
+
+df_parcial <- quintetos_obradoiro
+for (i in (1:nrow(df_parcial))){
+  clusters_quinteto <- numeric(6)
+  for (j in (1:ncol(df_parcial))){
+    if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
+    if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
+    if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
+    if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
+    if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
+    if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+  }
+   df_quintetos[i, ] <- clusters_quinteto
+}
+
+quintetos_obradoiro$Cluster1 <- df_quintetos$C1
+quintetos_obradoiro$Cluster2 <- df_quintetos$C2
+quintetos_obradoiro$Cluster3 <- df_quintetos$C3
+quintetos_obradoiro$Cluster4 <- df_quintetos$C4
+quintetos_obradoiro$Cluster5 <- df_quintetos$C5
+quintetos_obradoiro$Cluster6 <- df_quintetos$C6
+
+head(quintetos_obradoiro)
+```
+
+## Proba regresión 
+```{r}
+axuste_lm <- lm(Diferencia~., data = quintetos_obradoiro)
+summary(axuste_lm)
 ```
 
 ```{r}
-predicciones <- predict(randomForestObra, newdata = test_obra)
+library(car)
+FIV <- vif(axuste_lm)
+umbral <- 1/(1-summary(axuste_lm)$r.squared)
+print(FIV[FIV>umbral])
+```
 
-# Calcular MSE
-mse <- mean((test_obra$Media - predicciones)^2)
+```{r}
+MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_obradoiro)
+MOD_FULL <- axuste_lm
 
-# Calcular MAE
-mae <- mean(abs(test_obra$Media - predicciones))
+stepMod <- step(MOD_FULL, direction = "backward", trace = 1,
+                scope = list(lower = MOD_NULL, 
+                             upper = MOD_FULL))
+summary(stepMod)
+```
 
-# Calcular RMSE
-rmse <- sqrt(mse)
+```{r}
+FIV <- vif(stepMod)
+umbral <- 1/(1-summary(stepMod)$r.squared)
+print(FIV[FIV>umbral])
+```
 
-# Calcular R cuadrado
-r_cuadrado <- cor(test_obra$Media, predicciones)^2
+## Proba RandomForest
+```{r}
+library(randomForest)
+library(caret)
 
-# Mostrar los resultados
-print(paste("MSE:", mse))
-print(paste("MAE:", mae))
-print(paste("RMSE:", rmse))
-print(paste("R cuadrado:", r_cuadrado))
+set.seed(123)
+
+tamano_adestram <- round(0.90 * nrow(quintetos_obradoiro))
+
+indices_adestram <- sample(1:nrow(quintetos_obradoiro), tamano_adestram, replace = FALSE)
+
+train_obra <- quintetos_obradoiro[indices_adestram, ]
+test_obra <- quintetos_obradoiro[-indices_adestram, ]
+
+tuneGrid <- expand.grid(mtry = c(1:(ncol(train_obra) - 1)))
+folds <- c(3, 5, 10)
+erros <- numeric(3)
+modelos <- list()
+
+for (i in 1:length(folds)){
+  ctrl <- trainControl(method = "cv", number = folds[i])
+  randomForestObra <- train(Diferencia ~ ., data = train_obra, method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+  modelos <- c(modelos, randomForestObra)
+  erros[i] <- randomForestObra$results[which.min(randomForestObra$results[, 2]), 2]
+}
+
+erros
+```
+
+```{r}
+preds <- predict(randomForestObra, newdata = test_obra)
+( mae <- mean(abs(preds-test_obra$Diferencia)) )
+( mse <- mean((preds-test_obra$Diferencia)^2) )
 ```
 
 ## Proba con SVM:
 ```{r}
 library(e1071)
-
-x_train <- train_obra[, -7]  
-y_train <- train_obra[, 7]
-x_test <- test_obra[, -7]
-y_test <- test_obra[, 7]
-
-# Define los posibles valores de hiperparámetros a probar
-hyperparams <- list(C = c(1, 1.2, 1.45, 1.5, 1.55, 1.7, 2, 2.1, 2.25, 2.5, 2.75, 2.9, 3),
-                    epsilon = c(0.0325, 0.035, 0.0375, 0.05, 0.1, 0.125, 0.15, 0.175, 0.2),
-                    kernel = c("linear", "polynomial", "radial", "sigmoid"), 
-                    degree = c(1, 3, 5, 7, 9, 11),
-                    coef0 = c(0, 1, 2),
-                    scale = c(T, F),
-                    folds = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
-
-# Realiza la búsqueda de cuadrícula
-best_model <- NULL
-best_r2 <- 0
+tuneGrid <- list(kernel = c("linear", "polynomial", "sigmoid", "radial"),
+                        degree = c(2, 3, 4),
+                        gamma = c(0.01, 0.1, 0.5, 1),
+                        coef0 = c(0, 1, 2),
+                        sigma = c(0.01, 0.1, 1),
+                        cross = c(1, 3, 5, 10),
+                        cost = c(0.1, 1, 10),
+                        sc = c(T, F))
 best_mse <- Inf
-best_mae <- Inf
 
-set.seed(32725752)
-
-for (C in hyperparams$C) {
-  for (epsilon in hyperparams$epsilon) {
-    for (kernel in hyperparams$kernel) {
-      for (fold in hyperparams$folds) {
-        for (degree in hyperparams$degree){
-          for (coef in hyperparams$coef0){
-            for (scale in hyperparams$scale){
-              model <- svm(x_train, y_train, kernel = kernel, cost = C, degree = degree, coef0 = coef, epsilon = epsilon)
-              pred <- predict(model, x_test)
-              mse <- mean((y_test - pred)^2)
-              r2 <- cor(y_test, pred)^2
-              mae <- mean(abs(y_test-pred))
-              
-              if (mse<best_mse) {
-                best_r2 <- r2
-                best_error <- error
-                best_mae <- mae
-                best_model <- model
-                best_hyperparams <- list(C = C, epsilon = epsilon, kernel = kernel, folds = fold, degree = degree, coef = coef, scale = scale)
+for (k in tuneGrid$kernel){
+  for (d in tuneGrid$degree){
+    for (g in tuneGrid$gamma){
+      for (c in tuneGrid$coef0){
+        for (cost in tuneGrid$cost){
+          for (s in tuneGrid$sigma){
+            for (cross in tuneGrid$cross){
+              for (sc in tuneGrid$sc){
+                svm_model <- svm(Diferencia ~ ., data = train_obra, kernel = k,
+                                 degree = d, gamma = g, coef0 = c, cost = cost, 
+                                 sigma = s, cross = cross, scale = sc)
+                preds <- predict(svm_model, test_obra)
+                mse <- mean((preds-test_obra$Diferencia)^2)
+                if (mse < best_mse) {
+                  best_mse <- mse
+                  best_svm <- svm_model
+                }
               }
             }
           }
@@ -864,31 +915,19 @@ for (C in hyperparams$C) {
     }
   }
 }
+```
 
-# Imprime los mejores hiperparámetros encontrados
-print("Mejores hiperparámetros:")
-print(best_hyperparams)
+```{r}
+print(best_svm)
 
-# Evalúa el modelo en los datos de prueba
-test_pred <- predict(best_model, x_test)
-ECM <- mean((y_test - test_pred)^2)
-EAM <- mean(abs(y_test - test_pred))
-r2 <- cor(y_test, test_pred)^2
-rmse <- sqrt(mean((y_test - test_pred)^2))
-print(paste("ECM en test:", ECM))
-print(paste("EAM en test:", EAM))
-print(paste("RMSE en test:", rmse))
-print(paste("R cuadrado:", r2))
+preds <- predict(best_svm, test_obra)
+print(mean(abs(preds-test_obra$Diferencia)))
 ```
 
 
 
 
-
-
-
-
-
+## Combinacións Obradoiro para predición e selección do valor óptimo:
 ```{r}
 clusters_obra <- df_clusters[df_clusters$Equipo == "Monbus Obradoiro" & df_clusters$Ano == "2023/24", c(3, 4, 5, 6, 7, 8)]
 total_individuos <- sum(clusters_obra)
@@ -932,8 +971,8 @@ head(combinaciones)
 ```
 
 ```{r}
-#predicions <- predict(randomForestObra, newdata = combinaciones)
-predicions <- predict(best_model, newdata = combinaciones)
+predicions <- predict(randomForestObra, newdata = combinaciones)
+#predicions <- predict(best_model, newdata = combinaciones)
 orden <- order(predicions, decreasing = TRUE)
 
 combinacions_top <- combinaciones[orden[1:5], ]
@@ -946,96 +985,3 @@ traducion
 ```
 
 
-
-
-
-
-## Axuste coas variables significativas
-```{r}
-load("~/GCED/TFG/Datos/df_Obra_2324.RData")
-
-dim(df_Obra_2324)
-head(df_Obra_2324)
-tail(df_Obra_2324)
-```
-
-```{r}
-axuste_Obradoiro_victorias <- lm(Resultado ~ .-Xornada, data = df_Obra_2324)
-summary(axuste_Obradoiro_victorias)
-```
-
-```{r}
-MOD_NULL <- lm(Resultado ~ 1, data = df_Obra_2324)
-MOD_FULL <- axuste_Obradoiro_victorias
-
-stepMod <- step(MOD_NULL, direction = "forward", trace = 1,
-                scope = list(lower = MOD_NULL, 
-                             upper = MOD_FULL) )
-```
-
-```{r}
-summary(stepMod)
-```
-
-```{r}
-FIV <- vif(stepMod)
-umbral <- 1/(1-summary(stepMod)$r.squared)
-print(FIV[FIV>umbral])
-
-cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'TL_Min', 'TL_F', '%TL', 'Rec', 'FRea', 'Asist', 'TRea', 'RebTot', 'T3Asist', 'PPT3')])
-```
-
-```{r}
-axuste_Obradoiro_victorias <- lm(Resultado ~ Ptos_Perdida + TO + FRea + RebTot + TL_Min, data = df_Obra_2324)
-summary(axuste_Obradoiro_victorias)
-```
-
-### Bondade do axuste
-
-```{r}
-library(DAAG)
-summary(axuste_Obradoiro_victorias)$r.squared
-summary(axuste_Obradoiro_victorias)$adj.r.squared
-
-sum(residuals(axuste_Obradoiro_victorias)^2)/press(axuste_Obradoiro_victorias)
-# Mellor coeficiente de robustez que co modelo completo
-sum(residuals(MOD_FULL)^2)/press(MOD_FULL)
-# Mellor coeficiente de robustez tras a eliminación das vars non significativas
-sum(residuals(stepMod)^2)/press(stepMod)
-```
-
-```{r}
-FIV <- car::vif(axuste_Obradoiro_victorias)
-umbral <- 1/(1-summary(axuste_Obradoiro_victorias)$r.squared)
-print(FIV[FIV>umbral])
-
-cor(df_Obra_2324[, c('Ptos_Perdida', 'TO', 'FRea', 'RebTot')])
-```
-
-### Diagnose do modelo
-```{r}
-plot(axuste_Obradoiro_victorias)
-```
-
-### Liñalidade
-```{r}
-scatter.smooth(axuste_Obradoiro_victorias$fit, residuals(axuste_Obradoiro_victorias), main="Residuos ~ Axustados", 
-               xlab="Ajustados",ylab="Residuos", pch = 21, 
-               bg = "green", cex.lab=1.5, cex=1.4, cex.main=1.5)
-abline(h=0,lty=2,lwd=2)
-```
-
-### Normalidade
-```{r}
-shapiro.test(axuste_Obradoiro_victorias$residuals)
-```
-
-### Homoscedasticidade
-```{r}
-ncvTest(axuste_Obradoiro_victorias)
-```
-
-### Aleatoriedade
-```{r}
-Box.test(axuste_Obradoiro_victorias$residuals, lag = 5, type = "Ljung-Box")
-```

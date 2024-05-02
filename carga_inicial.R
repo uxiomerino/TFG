@@ -370,10 +370,76 @@ save(df_RebDef, file = "df_RebDef.RData")
 
 
 
-# Vars Obradoiro
-RebTot_Obradoiro <- read_csv("RebTot_Obradoiro.csv")[, c("Xogadores","Minutos","Valor Equipo")]
-head(RebTot_Obradoiro)
+# Quintetos Obradoiro
+
+TO_5_Obra <- read.csv("%TO_5_Obra.csv")
+Asist_5_Obra <- read.csv("%Asist_5_Obra.csv")
+RebDef_5_Obra <- read.csv("RebDef_5_Obra.csv")
+RebOf_5_Obra <- read.csv("RebOf_5_Obra.csv")
+RebTot_5_Obra <- read.csv("RebTot_5_Obra.csv")
+TL_F_5_Obra <- read.csv("TL_F_5_Obra.csv")
+TL_Min_5_Obra <- read.csv("TL_Min_5_Obra.csv")
+T3Asist_5_Obra <- read.csv("T3Asist_5_Obra.csv")
+T2Asist_5_Obra <- read.csv("T2Asist_5_Obra.csv")
+TAsist_5_Obra <- read.csv("TAsist_5_Obra.csv")
+PPT3_5_Obra <- read.csv("PPT3_5_Obra.csv")
+PPT2_5_Obra <- read.csv("PPT2_5_Obra.csv")
+PPT_5_Obra <- read.csv("PPT_5_Obra.csv")
+PPPos_5_Obra <- read.csv("PPPos_5_Obra.csv")
+PPMin_5_Obra <- read.csv("PPMin_5_Obra.csv")
+Puntos_5_Obra <- read.csv("Puntos_5_Obra.csv")
+
+quintetos_obradoiro <- data.frame(Xogadores = PPMin_5_Obra$Xogadores, Minutos = PPMin_5_Obra$Minutos, PPMin = PPMin_5_Obra$Media, PPPos = PPPos_5_Obra$Media, PPT = PPT_5_Obra$Media,
+                                  PPT2 = PPT2_5_Obra$Media, PPT3 = PPT3_5_Obra$Media, TAsist = TAsist_5_Obra$Media, 
+                                  T2Asist = T2Asist_5_Obra$Media, T3Asist = T3Asist_5_Obra$Media, TL_Min = TL_Min_5_Obra$Media,
+                                  TL_F = TL_F_5_Obra$Media, RebTot = RebTot_5_Obra$Media, RebDef = RebDef_5_Obra$Media, 
+                                  RebOf = RebOf_5_Obra$Media, Asist = Asist_5_Obra$Media, TO = TO_5_Obra$Media, Diferencia = (Puntos_5_Obra$Valor.Equipo - Puntos_5_Obra$Valor.Rival))
+head(quintetos_obradoiro)
+
 setwd("~/GCED/TFG/Datos")
-save(RebTot_Obradoiro, file = "RebTot_Obradoiro.RData")
+save(quintetos_obradoiro, file = "quintetos_obradoiro.RData")
+
+
+# Quintetos globais (parte 1)
+
+TO_5<- read.csv("TO_5.csv")
+Asist_5 <- read.csv("%Asist_5.csv")
+RebDef_5 <- read.csv("RebDef_5.csv")
+RebOf_5 <- read.csv("RebOf_5.csv")
+RebTot_5 <- read.csv("RebTot_5.csv")
+TL_F_5 <- read.csv("TL_F_5.csv")
+TL_Min_5 <- read.csv("TL_Min_5.csv")
+T3Asist_5 <- read.csv("T3Asist_5.csv")
+T2Asist_5 <- read.csv("T2Asist_5.csv")
+TAsist_5 <- read.csv("TAsist_5.csv")
+PPT3_5 <- read.csv("PPT3_5.csv")
+PPT2_5 <- read.csv("PPT2_5.csv")
+PPT_5 <- read.csv("PPT_5.csv")
+PPPos_5 <- read.csv("PPPos_5.csv")
+PPMin_5 <- read.csv("PPMin_5.csv")
+Puntos_5 <- read.csv("Puntos_5.csv")
+
+quintetos_global_1 <- data.frame(Xogadores = PPMin_5$Xogadores, Minutos = PPMin_5$Minutos, PPMin = PPMin_5$Media, PPPos = PPPos_5$Media, PPT = PPT_5$Media,
+                                  PPT2 = PPT2_5$Media, PPT3 = PPT3_5$Media, TAsist = TAsist_5$Media, 
+                                  T2Asist = T2Asist_5$Media, T3Asist = T3Asist_5$Media, TL_Min = TL_Min_5$Media,
+                                  TL_F = TL_F_5$Media, RebTot = RebTot_5$Media, RebDef = RebDef_5$Media, 
+                                  RebOf = RebOf_5$Media, Asist = Asist_5$Media, TO = TO_5$Media, Diferencia = (Puntos_5$Valor.Equipo - Puntos_5$Valor.Rival))
+head(quintetos_global_1)
+
+setwd("~/GCED/TFG/Datos")
+save(quintetos_global_1, file = "quintetos_global_1.RData")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

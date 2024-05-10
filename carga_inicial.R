@@ -400,8 +400,8 @@ setwd("~/GCED/TFG/Datos")
 save(quintetos_obradoiro, file = "quintetos_obradoiro.RData")
 
 
+setwd("~/GCED/TFG/Datos/Intermedios")
 # Quintetos globais (parte 1)
-
 TO_5<- read.csv("TO_5.csv")
 Asist_5 <- read.csv("%Asist_5.csv")
 RebDef_5 <- read.csv("RebDef_5.csv")
@@ -419,15 +419,53 @@ PPPos_5 <- read.csv("PPPos_5.csv")
 PPMin_5 <- read.csv("PPMin_5.csv")
 Puntos_5 <- read.csv("Puntos_5.csv")
 
-quintetos_global_1 <- data.frame(Xogadores = PPMin_5$Xogadores, Minutos = PPMin_5$Minutos, PPMin = PPMin_5$Media, PPPos = PPPos_5$Media, PPT = PPT_5$Media,
+TO_51<- read.csv("TO_51.csv")
+Asist_51 <- read.csv("Asist_51.csv")
+RebDef_51 <- read.csv("RebDef_51.csv")
+RebOf_51 <- read.csv("RebOf_51.csv")
+RebTot_51 <- read.csv("RebTot_51.csv")
+TL_F_51 <- read.csv("TL_F_51.csv")
+TL_Min_51 <- read.csv("TL_Min_51.csv")
+T3Asist_51 <- read.csv("T3Asist_51.csv")
+T2Asist_51 <- read.csv("T2Asist_51.csv")
+TAsist_51 <- read.csv("TAsist_51.csv")
+PPT3_51 <- read.csv("PPT3_51.csv")
+PPT2_51 <- read.csv("PPT2_51.csv")
+PPT_51 <- read.csv("PPT_51.csv")
+PPPos_51 <- read.csv("PPPos_51.csv")
+PPMin_51 <- read.csv("PPMin_51.csv")
+Puntos_51 <- read.csv("Puntos_51.csv")
+
+
+TO_5 <- rbind(TO_5, TO_51)
+Asist_5 <- rbind(Asist_5, Asist_51)
+RebDef_5 <- rbind(RebDef_5,RebDef_51)
+RebOf_5 <- rbind(RebOf_5, RebOf_51)
+RebTot_5 <- rbind(RebTot_5, RebTot_51)
+TL_F_5 <- rbind(TL_F_5, TL_F_51)
+TL_Min_5 <- rbind(TL_Min_5, TL_Min_51)
+T3Asist_5 <- rbind(T3Asist_5, T3Asist_51)
+T2Asist_5 <- rbind(T2Asist_5, T2Asist_51)
+TAsist_5 <- rbind(TAsist_5, TAsist_51)
+PPT3_5 <- rbind(PPT3_5, PPT3_51)
+PPT2_5 <- rbind(PPT2_5, PPT2_51)
+PPT_5 <- rbind(PPT_5, PPT_51)
+PPPos_5 <- rbind(PPPos_5, PPPos_51)
+PPMin_5 <- rbind(PPMin_5, PPMin_51)
+Puntos_5 <- rbind(Puntos_5, Puntos_51)
+
+
+
+
+quintetos_global <- data.frame(Xogadores = PPMin_5$Xogadores, Equipo = PPMin_5$Equipo, Minutos = PPMin_5$Minutos, PPMin = PPMin_5$Media, PPPos = PPPos_5$Media, PPT = PPT_5$Media,
                                   PPT2 = PPT2_5$Media, PPT3 = PPT3_5$Media, TAsist = TAsist_5$Media, 
                                   T2Asist = T2Asist_5$Media, T3Asist = T3Asist_5$Media, TL_Min = TL_Min_5$Media,
                                   TL_F = TL_F_5$Media, RebTot = RebTot_5$Media, RebDef = RebDef_5$Media, 
                                   RebOf = RebOf_5$Media, Asist = Asist_5$Media, TO = TO_5$Media, Diferencia = (Puntos_5$Valor.Equipo - Puntos_5$Valor.Rival))
-head(quintetos_global_1)
+head(quintetos_global)
 
 setwd("~/GCED/TFG/Datos")
-save(quintetos_global_1, file = "quintetos_global_1.RData")
+save(quintetos_global, file = "quintetos_global.RData")
 
 
 

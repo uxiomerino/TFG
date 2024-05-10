@@ -575,165 +575,17 @@ summary(im)
 
 ### Axuste xogadores
 
-```{r}
-load("~/GCED/TFG/Datos/quintetos.RData")
-
-dim(quintetos)
-head(quintetos)
-tail(quintetos)
-```
-
-```{r}
-df_combinaciones <- separate(quintetos, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
-n_miss(df_combinaciones)
-tail(df_combinaciones)
-```
-
-```{r}
-df_combinaciones[which.max(df_combinaciones$Minutos), ]
-df_combinaciones[which.max(df_combinaciones$Diferencia), ]
-df_combinaciones[which.min(df_combinaciones$Minutos), ]
-```
-
-```{r}
-cluster_1 <- c()
-cluster_2 <- c()
-cluster_3 <- c()
-cluster_4 <- c()
-cluster_5 <- c()
-
-indices <- c()
-
-for (i in 1:nrow(df_combinaciones)) {
-  quinteto <- df_combinaciones[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
-  ano <- as.character(df_combinaciones[i, "Ano"])
-  xogadores_quinteto <- unlist(quinteto)
-  
-  xogadores_validos <- unique(df_union[df_union$Año == ano, "Xogador"])
-  
-  if (all(xogadores_quinteto %in% xogadores_validos)) {
-    # Todos los jugadores de la fila están en la lista de jugadores válidos
-    clusters_quinteto <- c()
-    for (xogador in xogadores_quinteto) {
-      cluster <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Ano == ano
-                                                       & ordered_clustered_jerarquico_euclideo$Xogador == xogador , "CLUSTER"]
-      clusters_quinteto <- c(clusters_quinteto, cluster)
-    }
-    cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
-    cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
-    cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
-    cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
-    cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
-    
-  } else {
-    # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
-    indices <- c(indices, i)
-  }
-}
-
-
-df_combinaciones <- df_combinaciones[-indices, ]
-
-df_combinaciones$Cluster1 <- cluster_1
-df_combinaciones$Cluster2 <- cluster_2
-df_combinaciones$Cluster3 <- cluster_3
-df_combinaciones$Cluster4 <- cluster_4
-df_combinaciones$Cluster5 <- cluster_5
-
-df_combinaciones$Cluster1 <- as.factor(df_combinaciones$Cluster1)
-df_combinaciones$Cluster2 <- as.factor(df_combinaciones$Cluster2)
-df_combinaciones$Cluster3 <- as.factor(df_combinaciones$Cluster3)
-df_combinaciones$Cluster4 <- as.factor(df_combinaciones$Cluster4)
-df_combinaciones$Cluster5 <- as.factor(df_combinaciones$Cluster5)
-```
-
-
-```{r}
-summary(df_combinaciones$Minutos)
-
-hist(df_combinaciones$Minutos, prob = T, breaks = "FD", main = paste("Histograma dos minutos"))
-lines(density(df_combinaciones$Minutos), col = "blue", lwd = 2)
-
-length(boxplot(df_combinaciones$Minutos, outline = TRUE, main = paste("Boxplot de minutos"))$out)
-```
-
-```{r}
-df_combinaciones10 <- df_combinaciones[df_combinaciones$Minutos > 10, ]
-dim(df_combinaciones10)
-head(df_combinaciones10)
-tail(df_combinaciones10)
-```
-
-```{r}
-summary(df_combinaciones10$Minutos)
-```
-
-```{r}
-medias <- df_combinaciones10 %>%
-  group_by(Equipo) %>%
-  summarise(media = mean(Diferencia))
-
-head(medias)
-
-df_combinaciones10 <- left_join(df_combinaciones10, medias, by = "Equipo")
-
-df_combinaciones10 <- df_combinaciones10 %>%
-  mutate(Diferencia = Diferencia - media) 
-
-df_combinaciones10 <- df_combinaciones10[, -15]
-
-tail(df_combinaciones10)
-```
-
-```{r}
-pasoClusters <- function (df){
-  df_parcial <- df[,c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5")]
-  df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df_parcial)))
-  colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
-  
-  for (i in (1:nrow(df_parcial))){
-    clusters_quinteto <- numeric(6)
-    for (j in (1:ncol(df_parcial))){
-      if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
-      if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
-      if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
-      if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
-      if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
-      if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
-    }
-     df_quintetos[i, ] <- clusters_quinteto
-  }
-  df_quintetos$Media <- df$Diferencia
-  #df_quintetos$Minutos <- df$Minutos
-  return (df_quintetos)
-  
-}
-
-df_quintetos <- pasoClusters(df_combinaciones10)
-
-head(df_quintetos)
-```
-
-
-### Proba modelos Machine Learning:
-
-
-
-
-
-## Axuste específico Obradoiro e optimización Obradoiro
-
 ### Análise coa diferencia
 ```{r}
-load("~/GCED/TFG/Datos/quintetos_obradoiro.RData")
-quintetos_obradoiro <- quintetos_obradoiro[quintetos_obradoiro$Minutos > 5, ]
-quintetos_obradoiro
+load("~/GCED/TFG/Datos/quintetos_global.RData")
+quintetos_global <- quintetos_global[quintetos_global$Minutos > 5, ]
+quintetos_global
 ```
 
 ```{r}
 # Preparación do data frame:
 
-quintetos_obradoiro <- separate(quintetos_obradoiro, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
+quintetos_global <- separate(quintetos_global, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
 
 cluster_1 <- c()
 cluster_2 <- c()
@@ -743,11 +595,11 @@ cluster_5 <- c()
 
 indices <- c()
 
-for (i in 1:nrow(quintetos_obradoiro)) {
-  quinteto <- quintetos_obradoiro[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
+for (i in 1:nrow(quintetos_global)) {
+  quinteto <- quintetos_global[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
   xogadores_quinteto <- unlist(quinteto)
   
-  xogadores_validos <- unique(df_union[df_union$Año == "2023/24" & df_union$Equipo == "Monbus Obradoiro", "Xogador"])
+  xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
   
   if (all(xogadores_quinteto %in% xogadores_validos)) {
     # Todos los jugadores de la fila están en la lista de jugadores válidos
@@ -770,26 +622,26 @@ for (i in 1:nrow(quintetos_obradoiro)) {
 }
 
 
-quintetos_obradoiro <- quintetos_obradoiro[-indices, ]
+quintetos_global <- quintetos_global[-indices, ]
 
-quintetos_obradoiro$Cluster1 <- cluster_1
-quintetos_obradoiro$Cluster2 <- cluster_2
-quintetos_obradoiro$Cluster3 <- cluster_3
-quintetos_obradoiro$Cluster4 <- cluster_4
-quintetos_obradoiro$Cluster5 <- cluster_5
+quintetos_global$Cluster1 <- cluster_1
+quintetos_global$Cluster2 <- cluster_2
+quintetos_global$Cluster3 <- cluster_3
+quintetos_global$Cluster4 <- cluster_4
+quintetos_global$Cluster5 <- cluster_5
 
-quintetos_obradoiro$Cluster1 <- as.factor(quintetos_obradoiro$Cluster1)
-quintetos_obradoiro$Cluster2 <- as.factor(quintetos_obradoiro$Cluster2)
-quintetos_obradoiro$Cluster3 <- as.factor(quintetos_obradoiro$Cluster3)
-quintetos_obradoiro$Cluster4 <- as.factor(quintetos_obradoiro$Cluster4)
-quintetos_obradoiro$Cluster5 <- as.factor(quintetos_obradoiro$Cluster5)
+quintetos_global$Cluster1 <- as.factor(quintetos_global$Cluster1)
+quintetos_global$Cluster2 <- as.factor(quintetos_global$Cluster2)
+quintetos_global$Cluster3 <- as.factor(quintetos_global$Cluster3)
+quintetos_global$Cluster4 <- as.factor(quintetos_global$Cluster4)
+quintetos_global$Cluster5 <- as.factor(quintetos_global$Cluster5)
 
-quintetos_obradoiro <- quintetos_obradoiro[, -c(1, 2, 3, 4, 5, 6)]
+quintetos_global <- quintetos_global[, -c(1, 2, 3, 4, 5)]
 
-df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(quintetos_obradoiro)))
+df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(quintetos_global)))
 colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
 
-df_parcial <- quintetos_obradoiro
+df_parcial <- quintetos_global
 for (i in (1:nrow(df_parcial))){
   clusters_quinteto <- numeric(6)
   for (j in (1:ncol(df_parcial))){
@@ -803,19 +655,32 @@ for (i in (1:nrow(df_parcial))){
    df_quintetos[i, ] <- clusters_quinteto
 }
 
-quintetos_obradoiro$Cluster1 <- df_quintetos$C1
-quintetos_obradoiro$Cluster2 <- df_quintetos$C2
-quintetos_obradoiro$Cluster3 <- df_quintetos$C3
-quintetos_obradoiro$Cluster4 <- df_quintetos$C4
-quintetos_obradoiro$Cluster5 <- df_quintetos$C5
-quintetos_obradoiro$Cluster6 <- df_quintetos$C6
+quintetos_global$Cluster1 <- df_quintetos$C1
+quintetos_global$Cluster2 <- df_quintetos$C2
+quintetos_global$Cluster3 <- df_quintetos$C3
+quintetos_global$Cluster4 <- df_quintetos$C4
+quintetos_global$Cluster5 <- df_quintetos$C5
+quintetos_global$Cluster6 <- df_quintetos$C6
 
-head(quintetos_obradoiro)
+medias <- quintetos_global %>%
+  group_by(Equipo) %>%
+  summarise(media = mean(Diferencia))
+
+head(medias)
+
+quintetos_global <- left_join(quintetos_global, medias, by = "Equipo")
+
+quintetos_global <- quintetos_global %>%
+  mutate(Diferencia = Diferencia - media) 
+
+quintetos_global <- quintetos_global[, -c(1, 2, 25)]
+
+head(quintetos_global)
 ```
 
 ## Proba regresión 
 ```{r}
-axuste_lm <- lm(Diferencia~., data = quintetos_obradoiro)
+axuste_lm <- lm(Diferencia~., data = quintetos_global)
 summary(axuste_lm)
 ```
 
@@ -827,10 +692,10 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_obradoiro)
+MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_global)
 MOD_FULL <- axuste_lm
 
-stepMod <- step(MOD_FULL, direction = "backward", trace = 1,
+stepMod <- step(MOD_FULL, direction = "both", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL))
 summary(stepMod)
@@ -840,7 +705,40 @@ summary(stepMod)
 FIV <- vif(stepMod)
 umbral <- 1/(1-summary(stepMod)$r.squared)
 print(FIV[FIV>umbral])
+cor(quintetos_global[, c('PPPos', 'PPT', 'PPT2', 'TAsist', 'T2Asist', 'T3Asist', 'TO')])
 ```
+
+```{r}
+axuste_lm <- lm(formula = Diferencia ~ PPPos + PPT + TAsist 
+                + TL_F + RebDef + RebOf + TO + Cluster4,
+    data = quintetos_global)
+summary(axuste_lm)
+
+FIV <- vif(axuste_lm)
+umbral <- 1/(1-summary(axuste_lm)$r.squared)
+print(FIV[FIV>umbral])
+
+cor(quintetos_global[, c('PPPos', 'PPT' ,'TO')])
+```
+
+```{r}
+axuste_lm <- lm(formula = Diferencia ~ PPT + TAsist + TL_F + RebDef 
+                + RebOf + TO + Cluster4,
+    data = quintetos_global)
+summary(axuste_lm)
+
+FIV <- vif(axuste_lm)
+umbral <- 1/(1-summary(axuste_lm)$r.squared)
+print(FIV[FIV>umbral])
+```
+
+```{r}
+axuste_lm <- lm(formula = Diferencia ~ PPT + TL_F + RebDef 
+                + RebOf + TO + Cluster4,
+    data = quintetos_global)
+summary(axuste_lm)
+```
+
 
 ## Proba RandomForest
 ```{r}
@@ -849,139 +747,31 @@ library(caret)
 
 set.seed(123)
 
-tamano_adestram <- round(0.90 * nrow(quintetos_obradoiro))
+tamano_adestram <- round(0.80 * nrow(quintetos_global))
 
-indices_adestram <- sample(1:nrow(quintetos_obradoiro), tamano_adestram, replace = FALSE)
+indices_adestram <- sample(1:nrow(quintetos_global), tamano_adestram, replace = FALSE)
 
-train_obra <- quintetos_obradoiro[indices_adestram, ]
-test_obra <- quintetos_obradoiro[-indices_adestram, ]
+train_obra <- quintetos_global[indices_adestram, ]
+test_obra <- quintetos_global[-indices_adestram, ]
 
 tuneGrid <- expand.grid(mtry = c(1:(ncol(train_obra) - 1)))
-folds <- c(3, 5, 10)
-erros <- numeric(3)
-modelos <- list()
 
-for (i in 1:length(folds)){
-  ctrl <- trainControl(method = "cv", number = folds[i])
-  randomForestObra <- train(Diferencia ~ ., data = train_obra, method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
-  modelos <- c(modelos, randomForestObra)
-  erros[i] <- randomForestObra$results[which.min(randomForestObra$results[, 2]), 2]
-}
+ctrl <- trainControl(method = "cv", number = 10)
+randomForestObra <- train(Diferencia ~ ., data = train_obra, method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 
-erros
+randomForestObra
 ```
 
 ```{r}
 preds <- predict(randomForestObra, newdata = test_obra)
 ( mae <- mean(abs(preds-test_obra$Diferencia)) )
 ( mse <- mean((preds-test_obra$Diferencia)^2) )
+( R2(preds, test_obra$Diferencia) )
+
+sd_true <- sd(test_obra$Diferencia)
+
+mae_relative_sd <- mae / sd_true
+
+print(paste("MAE relativo respecto a la desviación estándar:", mae_relative_sd))
 ```
-
-## Proba con SVM:
-```{r}
-library(e1071)
-tuneGrid <- list(kernel = c("linear", "polynomial", "sigmoid", "radial"),
-                        degree = c(2, 3, 4),
-                        gamma = c(0.01, 0.1, 0.5, 1),
-                        coef0 = c(0, 1, 2),
-                        sigma = c(0.01, 0.1, 1),
-                        cross = c(1, 3, 5, 10),
-                        cost = c(0.1, 1, 10),
-                        sc = c(T, F))
-best_mse <- Inf
-
-for (k in tuneGrid$kernel){
-  for (d in tuneGrid$degree){
-    for (g in tuneGrid$gamma){
-      for (c in tuneGrid$coef0){
-        for (cost in tuneGrid$cost){
-          for (s in tuneGrid$sigma){
-            for (cross in tuneGrid$cross){
-              for (sc in tuneGrid$sc){
-                svm_model <- svm(Diferencia ~ ., data = train_obra, kernel = k,
-                                 degree = d, gamma = g, coef0 = c, cost = cost, 
-                                 sigma = s, cross = cross, scale = sc)
-                preds <- predict(svm_model, test_obra)
-                mse <- mean((preds-test_obra$Diferencia)^2)
-                if (mse < best_mse) {
-                  best_mse <- mse
-                  best_svm <- svm_model
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-```{r}
-print(best_svm)
-
-preds <- predict(best_svm, test_obra)
-print(mean(abs(preds-test_obra$Diferencia)))
-```
-
-
-
-
-## Combinacións Obradoiro para predición e selección do valor óptimo:
-```{r}
-clusters_obra <- df_clusters[df_clusters$Equipo == "Monbus Obradoiro" & df_clusters$Ano == "2023/24", c(3, 4, 5, 6, 7, 8)]
-total_individuos <- sum(clusters_obra)
-
-individuos_seleccionados <- 5
-
-# Generar todas las combinaciones posibles de individuos
-combinaciones <- combn(total_individuos, individuos_seleccionados, simplify = F)
-
-traducion <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" &
-                                        ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ] 
-
-mapear_a_cluster <- function(numero) {
-  return(traducion$CLUSTER[numero])
-}
-
-combinaciones_cluster <- lapply(combinaciones, mapear_a_cluster)
-combinaciones_cluster <- do.call(rbind, combinaciones_cluster)
-combinaciones_cluster <- as.data.frame(combinaciones_cluster)
-head(combinaciones_cluster)
-```
-
-```{r}
-combinaciones <- data.frame(matrix(ncol = 6, nrow = nrow(combinaciones_cluster)))
-for (i in (1:nrow(combinaciones_cluster))){
-  clusters_quinteto <- numeric(6)
-  for (j in (1:ncol(combinaciones_cluster))){
-    if (combinaciones_cluster[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
-    if (combinaciones_cluster[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
-    if (combinaciones_cluster[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
-    if (combinaciones_cluster[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
-    if (combinaciones_cluster[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
-    if (combinaciones_cluster[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
-  }
-   combinaciones[i, ] <- clusters_quinteto
-}
-
-combinaciones <- unique(combinaciones)
-colnames(combinaciones) <- c("C1", "C2", "C3", "C4", "C5", "C6")
-head(combinaciones)
-```
-
-```{r}
-predicions <- predict(randomForestObra, newdata = combinaciones)
-#predicions <- predict(best_model, newdata = combinaciones)
-orden <- order(predicions, decreasing = TRUE)
-
-combinacions_top <- combinaciones[orden[1:5], ]
-combinacions_top$predicions <- predicions[orden[1:5]]
-combinacions_top
-```
-
-```{r}
-traducion
-```
-
 

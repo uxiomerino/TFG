@@ -663,17 +663,17 @@ quintetos_global$Cluster5 <- df_quintetos$C5
 quintetos_global$Cluster6 <- df_quintetos$C6
 
 medias <- quintetos_global %>%
-  group_by(Equipo) %>%
-  summarise(media = mean(Diferencia))
-
+group_by(Equipo) %>%
+ summarise(media = mean(Diferencia))
+  
 head(medias)
-
+  
 quintetos_global <- left_join(quintetos_global, medias, by = "Equipo")
-
+  
 quintetos_global <- quintetos_global %>%
   mutate(Diferencia = Diferencia - media) 
 
-quintetos_global <- quintetos_global[, -c(1, 2, 25)]
+quintetos_global <- quintetos_global[, -c(1, 2)]#, 25)]
 
 head(quintetos_global)
 ```
@@ -737,6 +737,10 @@ axuste_lm <- lm(formula = Diferencia ~ PPT + TL_F + RebDef
                 + RebOf + TO + Cluster4,
     data = quintetos_global)
 summary(axuste_lm)
+```
+
+```{r}
+plot(axuste_lm)
 ```
 
 

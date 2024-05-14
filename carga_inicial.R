@@ -75,33 +75,33 @@ df$"LE" <- LE$Media
 save(df, file="df.RData")
 
 
-df3 <- data.frame(matrix(ncol = 0, nrow = 313))
+df3 <- data.frame(matrix(ncol = 0, nrow = 318))
 # LigaACB 2023/24
-PPP2 <- read_csv("PPP2.csv")
-PPMin2 <- read_csv("PPMin2.csv")
-PPPos2 <- read_csv("PPPos2.csv")
-boxscore2 <- read_csv("boxscore2.csv")
+PPP2 <- read_csv("Puntos_.csv")
+PPMin2 <- read_csv("PPMin_.csv")
+PPPos2 <- read_csv("PPPos_.csv")
+boxscore2 <- read_csv("BS_.csv")
 bs2 <- boxscore2[, c(3, 23:40)]
-PPT2 <- read_csv("PPTC2.csv")
-PPT22 <- read_csv("PPT22.csv")
-PPT32 <- read_csv("PPT32.csv")
-TCInt2 <- read_csv("%TCAbs2.csv")
-T2Inte2 <- read_csv("%T2Abs2.csv")
-T3Int2 <- read_csv("%T3Abs2.csv")
-Ptos2 <- read_csv("%Ptos2.csv")
-Ptos22 <- read_csv("%2Ptos2.csv")
-Ptos32 <- read_csv("%3Ptos2.csv")
-TAsist2 <- read_csv("%TAsist2.csv")
-T2Asist2 <- read_csv("%T2Asist2.csv")
-T3Asist2 <- read_csv("%T3Asist2.csv")
-TL_Min2 <- read_csv("TL_Min2.csv")
-TL_F2 <- read_csv("TL_F2.csv")
-RebTot2 <- read_csv("%Reb2.csv")
-RebOf2 <- read_csv("%RebOf2.csv")
-RebDef2 <- read_csv("%RebDef2.csv")
-Asist2 <- read_csv("%Asist2.csv")
-TO2 <- read_csv("%TO2.csv")
-LE2 <- read_csv("LE2.csv")
+PPT2 <- read_csv("PPT_.csv")
+PPT22 <- read_csv("PPT2_.csv")
+PPT32 <- read_csv("PPT3_.csv")
+TCInt2 <- read_csv("TCInt_.csv")
+T2Inte2 <- read_csv("T2Int_.csv")
+T3Int2 <- read_csv("T3Int_.csv")
+Ptos2 <- read_csv("%Ptos_.csv")
+Ptos22 <- read_csv("%Ptos2_.csv")
+Ptos32 <- read_csv("%Ptos3_.csv")
+TAsist2 <- read_csv("%TAsist_.csv")
+T2Asist2 <- read_csv("%T2Asist_.csv")
+T3Asist2 <- read_csv("%T3Asist_.csv")
+TL_Min2 <- read_csv("TL_Min_.csv")
+TL_F2 <- read_csv("TL_F_.csv")
+RebTot2 <- read_csv("RebTot_.csv")
+RebOf2 <- read_csv("RebOf_.csv")
+RebDef2 <- read_csv("RebDef_.csv")
+Asist2 <- read_csv("%Asist_.csv")
+TO2 <- read_csv("TO_.csv")
+LE2 <- read_csv("LE_.csv")
 
 df3$Equipo <- PPP2$Equipo
 df3$Xogador <- PPP2$Xogadores
@@ -142,6 +142,7 @@ df3$"%Asist" <- Asist2$Media
 df3$"%TO" <- TO2$Media
 df3$"LE" <- LE2$Media
 
+setwd("~/GCED/TFG/Datos")
 save(df3, file="df3.RData")
 
 

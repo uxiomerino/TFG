@@ -450,11 +450,11 @@ plot_ly(data = plot_clusters_jerarquico_euclideo, x = ~CP1, y = ~CP2, z = ~CP3, 
 
 ```{r}
 plot(clustering_jerarquico_euclideo)
-rect.hclust(clustering_jerarquico_euclideo, h = 30)
+rect.hclust(clustering_jerarquico_euclideo, h=30)
 
 library(dendextend)
 dend <- as.dendrogram(clustering_jerarquico_euclideo)
-dend_colored <- color_branches(dend, h = 30)
+dend_colored <- color_branches(dend, h=30)
 plot(dend_colored)
 ```
 
@@ -470,9 +470,8 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 2, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 5, ]
 ```
-
 
 ## ANALISIS DOS PERFIS DOS EQUIPOS
 ```{r}
@@ -583,6 +582,11 @@ summary(im)
 ### Análise coa diferencia
 ```{r}
 load("~/GCED/TFG/Datos/quintetos_global.RData")
+
+quintetos_obra <- quintetos_global[quintetos_global$Equipo == "Monbus Obradoiro" &
+                                     quintetos_global$Minutos > 5, ]
+quintetos_obra
+
 quintetos_global <- quintetos_global[quintetos_global$Minutos > 10, ]
 quintetos_global
 ```
@@ -590,102 +594,112 @@ quintetos_global
 ```{r}
 # Preparación do data frame:
 
-quintetos_global <- separate(quintetos_global, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
-
-cluster_1 <- c()
-cluster_2 <- c()
-cluster_3 <- c()
-cluster_4 <- c()
-cluster_5 <- c()
-
-indices <- c()
-
-for (i in 1:nrow(quintetos_global)) {
-  quinteto <- quintetos_global[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
-  xogadores_quinteto <- unlist(quinteto)
+preprocesado_quintetos <- function(df){
+  df <- separate(df, Xogadores, into = c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5"), sep = "(?<=\\D) (?=\\d)")
   
-  xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
+  cluster_1 <- c()
+  cluster_2 <- c()
+  cluster_3 <- c()
+  cluster_4 <- c()
+  cluster_5 <- c()
   
-  if (all(xogadores_quinteto %in% xogadores_validos)) {
-    # Todos los jugadores de la fila están en la lista de jugadores válidos
-    clusters_quinteto <- c()
-    for (xogador in xogadores_quinteto) {
-      cluster <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Ano == "2023/24"
-                                                       & ordered_clustered_jerarquico_euclideo$Xogador == xogador , "CLUSTER"]
-      clusters_quinteto <- c(clusters_quinteto, cluster)
-    }
-    cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
-    cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
-    cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
-    cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
-    cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
+  indices <- c()
+  
+  for (i in 1:nrow(df)) {
+    quinteto <- df[i, c("Xogador 1", "Xogador 2", "Xogador 3", "Xogador 4", "Xogador 5")]
+    xogadores_quinteto <- unlist(quinteto)
     
-  } else {
-    # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
-    indices <- c(indices, i)
+    xogadores_validos <- unique(df_union[df_union$Año == "2023/24", "Xogador"])
+    
+    if (all(xogadores_quinteto %in% xogadores_validos)) {
+      # Todos los jugadores de la fila están en la lista de jugadores válidos
+      clusters_quinteto <- c()
+      for (xogador in xogadores_quinteto) {
+        cluster <- ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Ano == "2023/24"
+                                                         & ordered_clustered_jerarquico_euclideo$Xogador == xogador , "CLUSTER"]
+        clusters_quinteto <- c(clusters_quinteto, cluster)
+      }
+      cluster_1 <- c(cluster_1, unlist(clusters_quinteto)[1])
+      cluster_2 <- c(cluster_2, unlist(clusters_quinteto)[2])
+      cluster_3 <- c(cluster_3, unlist(clusters_quinteto)[3])
+      cluster_4 <- c(cluster_4, unlist(clusters_quinteto)[4])
+      cluster_5 <- c(cluster_5, unlist(clusters_quinteto)[5])
+      
+    } else {
+      # Al menos un jugador de la fila no está en la lista de jugadores válidos, eliminar la fila
+      indices <- c(indices, i)
+    }
   }
+  
+  
+  df <- df[-indices, ]
+  
+  df$Cluster1 <- cluster_1
+  df$Cluster2 <- cluster_2
+  df$Cluster3 <- cluster_3
+  df$Cluster4 <- cluster_4
+  df$Cluster5 <- cluster_5
+  
+  df$Cluster1 <- as.factor(df$Cluster1)
+  df$Cluster2 <- as.factor(df$Cluster2)
+  df$Cluster3 <- as.factor(df$Cluster3)
+  df$Cluster4 <- as.factor(df$Cluster4)
+  df$Cluster5 <- as.factor(df$Cluster5)
+  
+  df <- df[, -c(1, 2, 3, 4, 5)]
+  
+  df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(df)))
+  colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
+  
+  df_parcial <- df
+  for (i in (1:nrow(df_parcial))){
+    clusters_quinteto <- numeric(6)
+    for (j in (1:ncol(df_parcial))){
+      if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
+      if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
+      if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
+      if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
+      if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
+      if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
+    }
+     df_quintetos[i, ] <- clusters_quinteto
+  }
+  
+  
+  df$Cluster1 <- df_quintetos$C1
+  df$Cluster2 <- df_quintetos$C2
+  df$Cluster3 <- df_quintetos$C3
+  df$Cluster4 <- df_quintetos$C4
+  df$Cluster5 <- df_quintetos$C5
+  df$Cluster6 <- df_quintetos$C6
+  
+  
+  medias <- df %>%
+  group_by(Equipo) %>%
+   summarise(media = mean(Diferencia))
+    
+  head(medias)
+    
+  df <- left_join(df, medias, by = "Equipo")
+    
+  df <- df %>%
+    mutate(Diferencia = Diferencia - media) 
+  
+  df <- df[, -c(1, 2, 25)]
+  
+  return (df)
 }
 
+quintetos_obra_limpos <- preprocesado_quintetos(quintetos_obra)
+quintetos_global_limpos <- preprocesado_quintetos(quintetos_global)
 
-quintetos_global <- quintetos_global[-indices, ]
-
-quintetos_global$Cluster1 <- cluster_1
-quintetos_global$Cluster2 <- cluster_2
-quintetos_global$Cluster3 <- cluster_3
-quintetos_global$Cluster4 <- cluster_4
-quintetos_global$Cluster5 <- cluster_5
-
-quintetos_global$Cluster1 <- as.factor(quintetos_global$Cluster1)
-quintetos_global$Cluster2 <- as.factor(quintetos_global$Cluster2)
-quintetos_global$Cluster3 <- as.factor(quintetos_global$Cluster3)
-quintetos_global$Cluster4 <- as.factor(quintetos_global$Cluster4)
-quintetos_global$Cluster5 <- as.factor(quintetos_global$Cluster5)
-
-quintetos_global <- quintetos_global[, -c(1, 2, 3, 4, 5)]
-
-df_quintetos <- data.frame(matrix(ncol = 6, nrow = nrow(quintetos_global)))
-colnames(df_quintetos) <- c("C1", "C2", "C3", "C4", "C5", "C6")
-
-df_parcial <- quintetos_global
-for (i in (1:nrow(df_parcial))){
-  clusters_quinteto <- numeric(6)
-  for (j in (1:ncol(df_parcial))){
-    if (df_parcial[i, j] == 1) clusters_quinteto[1] = clusters_quinteto[1] + 1
-    if (df_parcial[i, j] == 2) clusters_quinteto[2] = clusters_quinteto[2] + 1
-    if (df_parcial[i, j] == 3) clusters_quinteto[3] = clusters_quinteto[3] + 1
-    if (df_parcial[i, j] == 4) clusters_quinteto[4] = clusters_quinteto[4] + 1
-    if (df_parcial[i, j] == 5) clusters_quinteto[5] = clusters_quinteto[5] + 1
-    if (df_parcial[i, j] == 6) clusters_quinteto[6] = clusters_quinteto[6] + 1
-  }
-   df_quintetos[i, ] <- clusters_quinteto
-}
-
-quintetos_global$Cluster1 <- df_quintetos$C1
-quintetos_global$Cluster2 <- df_quintetos$C2
-quintetos_global$Cluster3 <- df_quintetos$C3
-quintetos_global$Cluster4 <- df_quintetos$C4
-quintetos_global$Cluster5 <- df_quintetos$C5
-quintetos_global$Cluster6 <- df_quintetos$C6
-
-medias <- quintetos_global %>%
-group_by(Equipo) %>%
- summarise(media = mean(Diferencia))
-  
-head(medias)
-  
-quintetos_global <- left_join(quintetos_global, medias, by = "Equipo")
-  
-quintetos_global <- quintetos_global %>%
-  mutate(Diferencia = Diferencia - media) 
-
-quintetos_global <- quintetos_global[, -c(1, 2, 25)]
-
-head(quintetos_global)
+quintetos_obra_limpos
+quintetos_global_limpos
 ```
 
 ## Proba regresión 
 ```{r}
-axuste_lm <- lm(Diferencia~., data = quintetos_global)
+axuste_lm <- lm(Diferencia~., data = quintetos_obra_limpos)
 summary(axuste_lm)
 ```
 
@@ -697,7 +711,7 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_global)
+MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_obra_limpos)
 MOD_FULL <- axuste_lm
 
 stepMod <- step(MOD_FULL, direction = "both", trace = 1,
@@ -710,35 +724,17 @@ summary(stepMod)
 FIV <- vif(stepMod)
 umbral <- 1/(1-summary(stepMod)$r.squared)
 print(FIV[FIV>umbral])
-cor(quintetos_global[, c('PPPos','TAsist', 'T2Asist', 'T3Asist', 'Asist')])
 ```
 
 ```{r}
-axuste_lm <- lm(formula = Diferencia ~ PPPos + TAsist + RebDef + Asist + 
-                  TO + Cluster3 + Cluster4, data = quintetos_global)
+axuste_lm <-lm(formula = Diferencia ~ PPMin + PPT + T3Asist + RebOf + 
+    Cluster5, data = quintetos_obra_limpos)
+
 summary(axuste_lm)
 
 FIV <- vif(axuste_lm)
 umbral <- 1/(1-summary(axuste_lm)$r.squared)
 print(FIV[FIV>umbral])
-
-cor(quintetos_global[, c('PPPos', 'TAsist' ,'Asist')])
-```
-
-```{r}
-axuste_lm <- lm(formula = Diferencia ~ PPPos + TAsist + RebDef +  TO 
-                + Cluster3 + Cluster4, data = quintetos_global)
-summary(axuste_lm)
-
-FIV <- vif(axuste_lm)
-umbral <- 1/(1-summary(axuste_lm)$r.squared)
-print(FIV[FIV>umbral])
-```
-
-```{r}
-axuste_lm <- lm(formula = Diferencia ~ PPPos + RebDef + TO , data = quintetos_global)
-
-summary(axuste_lm)
 ```
 
 ```{r}
@@ -757,12 +753,12 @@ library(caret)
 
 set.seed(123)
 
-tamano_adestram <- round(0.80 * nrow(quintetos_global))
+tamano_adestram <- round(0.80 * nrow(quintetos_obra_limpos))
 
-indices_adestram <- sample(1:nrow(quintetos_global), tamano_adestram, replace = FALSE)
+indices_adestram <- sample(1:nrow(quintetos_obra_limpos), tamano_adestram, replace = FALSE)
 
-train_obra <- quintetos_global[indices_adestram, ]
-test_obra <- quintetos_global[-indices_adestram, ]
+train_obra <- quintetos_obra_limpos[indices_adestram, ]
+test_obra <- quintetos_obra_limpos[-indices_adestram, ]
 
 tuneGrid <- expand.grid(mtry = c(1:(ncol(train_obra) - 1)))
 
@@ -784,4 +780,3 @@ mae_relative_sd <- mae / sd_true
 
 print(paste("MAE relativo respecto a la desviación estándar:", mae_relative_sd))
 ```
-

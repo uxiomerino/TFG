@@ -423,7 +423,6 @@ ordered_clustered_jerarquico[ordered_clustered_jerarquico$CLUSTER== 1, ]
 
 
 
-
 ## CLUSTERING JERARQUICO: distancia euclídea
 ```{r}
 metodos = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
@@ -513,6 +512,9 @@ buscar_xogador(df_con_cluster, "23 SERGIO LLULL", año = "2023/24", cluster =  6
 # Exemplo de uso da funcion busqueda_xogadores_cercanos
 busqueda_xogadores_cercanos(df_con_cluster, "9 RICKY RUBIO", distancia = 3)[1]
 busqueda_xogadores_cercanos(df_con_cluster, "9 RICKY RUBIO", distancia = 3, cluster = 6)[1]
+
+busqueda_xogadores_cercanos(df_con_cluster, "10 DEVON DOTSON", distancia = 3)[1]
+busqueda_xogadores_cercanos(df_con_cluster, "10 DEVON DOTSON", distancia = 3, cluster = 6)[1]
 ```
 
 
@@ -693,13 +695,16 @@ preprocesado_quintetos <- function(df){
 quintetos_obra_limpos <- preprocesado_quintetos(quintetos_obra)
 quintetos_global_limpos <- preprocesado_quintetos(quintetos_global)
 
+quintetos_obra_limpos_norm <- as.data.frame(scale(quintetos_obra_limpos))
+quintetos_global_limpos_norm <- as.data.frame(scale(quintetos_global_limpos))
+
 quintetos_obra_limpos
 quintetos_global_limpos
 ```
 
-## Proba regresión 
+## Proba regresión Obra
 ```{r}
-axuste_lm <- lm(Diferencia~., data = quintetos_obra_limpos)
+axuste_lm <- lm(Diferencia~., data = quintetos_obra_limpos_norm)
 summary(axuste_lm)
 ```
 
@@ -711,7 +716,7 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_obra_limpos)
+MOD_NULL <- lm(Diferencia ~ 1, data = quintetos_obra_limpos_norm)
 MOD_FULL <- axuste_lm
 
 stepMod <- step(MOD_FULL, direction = "both", trace = 1,
@@ -728,7 +733,7 @@ print(FIV[FIV>umbral])
 
 ```{r}
 axuste_lm <-lm(formula = Diferencia ~ PPMin + PPT + T3Asist + RebOf + 
-    Cluster5, data = quintetos_obra_limpos)
+    Cluster5, data = quintetos_obra_limpos_norm)
 
 summary(axuste_lm)
 
@@ -746,37 +751,102 @@ shapiro.test(axuste_lm$residuals)
 ```
 
 
-## Proba RandomForest
+## Proba RandomForest Obra
 ```{r}
-library(randomForest)
 library(caret)
+library(randomForest)
 
-set.seed(123)
+# tamano_adestram <- round(0.80 * nrow(quintetos_obra_limpos))
+# indices_adestram <- sample(1:nrow(quintetos_obra_limpos), tamano_adestram, replace = FALSE)
 
-tamano_adestram <- round(0.80 * nrow(quintetos_obra_limpos))
+# train_obra <- quintetos_obra_limpos[indices_adestram, ]
+# test_obra <- quintetos_obra_limpos[-indices_adestram, ]
 
-indices_adestram <- sample(1:nrow(quintetos_obra_limpos), tamano_adestram, replace = FALSE)
+# train_mean <- colMeans(train_obra)
+# train_sd <- apply(train_obra, 2, sd)
 
-train_obra <- quintetos_obra_limpos[indices_adestram, ]
-test_obra <- quintetos_obra_limpos[-indices_adestram, ]
+# train_obra_norm <- as.data.frame(scale(train_obra, center = train_mean, scale = train_sd))
+# test_obra_norm <- as.data.frame(scale(test_obra, center = train_mean, scale = train_sd))
 
-tuneGrid <- expand.grid(mtry = c(1:(ncol(train_obra) - 1)))
 
+control_rfe = rfeControl(functions = rfFuncs, # random forest
+                      method = "repeatedcv", # repeated cv
+                      repeats = 5, # number of repeats
+                      number = 10) # number of folds
+set.seed(9136)
+# Performing RFE
+varsObra <- rfe(x = quintetos_obra_limpos_norm[, -16], 
+                 y = quintetos_obra_limpos_norm$Diferencia, 
+                 sizes = c(1:(length(colnames(quintetos_obra_limpos_norm))-1)),
+                 rfeControl = control_rfe)
+
+predictors(varsObra)
+```
+
+```{r}
+cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
+
+tuneGrid <- expand.grid(mtry = c(1:(length(cols_RF_Obra) - 1)))
 ctrl <- trainControl(method = "cv", number = 10)
-randomForestObra <- train(Diferencia ~ ., data = train_obra, method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+randomForestObra <- train(Diferencia ~ ., data = quintetos_obra_limpos_norm[, cols_RF_Obra], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 
 randomForestObra
 ```
 
+
 ```{r}
-preds <- predict(randomForestObra, newdata = test_obra)
-( mae <- mean(abs(preds-test_obra$Diferencia)) )
-( mse <- mean((preds-test_obra$Diferencia)^2) )
-( R2(preds, test_obra$Diferencia) )
+preds <- predict(randomForestObra, newdata = test_obra_norm)
 
-sd_true <- sd(test_obra$Diferencia)
+datos_preds <- data.frame(obs = test_obra_norm$Diferencia, pred = preds)
 
-mae_relative_sd <- mae / sd_true
 
-print(paste("MAE relativo respecto a la desviación estándar:", mae_relative_sd))
+( mae <- mean(abs(preds-test_obra_norm$Diferencia)) )
+( mse <- mean((preds-test_obra_norm$Diferencia)^2) )
+( R2(preds, test_obra_norm$Diferencia) )
+
+datos_preds
 ```
+
+
+
+## Proba RandomForest Global
+```{r}
+set.seed(32725752)
+
+# tamano_adestram <- round(0.80 * nrow(quintetos_global_limpos_norm))
+# indices_adestram <- sample(1:nrow(quintetos_global_limpos_norm), tamano_adestram, replace = FALSE)
+# 
+# train_global <- quintetos_global_limpos[indices_adestram, ]
+# test_global <- quintetos_global_limpos[-indices_adestram, ]
+# 
+# train_mean <- colMeans(train_global)
+# train_sd <- apply(train_global, 2, sd)
+# 
+# train_global_norm <- as.data.frame(scale(train_global, center = train_mean, scale = train_sd))
+# test_global_norm <- as.data.frame(scale(test_global, center = train_mean, scale = train_sd))ç
+
+control_rfe = rfeControl(functions = rfFuncs, # random forest
+                      method = "repeatedcv", # repeated cv
+                      repeats = 5, # number of repeats
+                      number = 10) # number of folds
+set.seed(123)
+# Performing RFE
+varsGlobal <- rfe(x = quintetos_global_limpos_norm[, -16], 
+                 y = quintetos_global_limpos_norm$Diferencia, 
+                 sizes = c(1:length(colnames(quintetos_global_limpos_norm))),
+                 rfeControl = control_rfe)
+
+predictors(varsGlobal)
+```
+
+```{r}
+varsGlobal <- c(predictors(varsGlobal), "Diferencia")
+tuneGrid <- expand.grid(mtry = c(1:length(varsGlobal) - 1))
+
+ctrl <- trainControl(method = "cv", number = 10)
+randomForestGlobal <- train(Diferencia ~ ., data = quintetos_global_limpos_norm[, varsGlobal], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+
+randomForestGlobal
+```
+
+

@@ -706,11 +706,11 @@ quintetos_obra_limpos <- preprocesado_quintetos(quintetos_obra)
 
 rowSums(quintetos_obra_limpos[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]) == 5
 
-quintetos_obra_limpos_norm <- as.data.frame(scale(quintetos_obra_limpos))
+quintetos_obra_limpos_norm <- as.data.frame(scale(quintetos_obra_limpos[, -17]))
+quintetos_obra_limpos_norm$Diferencia <- quintetos_obra_limpos$Diferencia
 
 summary(quintetos_obra_limpos_norm)
 ```
-
 
 ## MachineLearning Obra
 ```{r}
@@ -718,17 +718,18 @@ library(caret)
 library(randomForest)
 
 control_rfe = rfeControl(functions = rfFuncs, # random forest
-                      method = "cv", # repeated cv
+                      method = "cv",
                       number = 10) # number of folds
 set.seed(32725752)
 # Performing RFE
-varsObra <- rfe(x = quintetos_obra_limpos[, -17], 
-                 y = quintetos_obra_limpos$Diferencia, 
+varsObra <- rfe(x = quintetos_obra_limpos_norm[, -23], 
+                 y = quintetos_obra_limpos_norm$Diferencia, 
                  sizes = c(1:(length(colnames(quintetos_obra_limpos))-1)),
                  rfeControl = control_rfe)
 
 predictors(varsObra)
 ```
+
 ### RanfomForest
 ```{r}
 cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
@@ -736,7 +737,7 @@ cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
 tuneGrid <- expand.grid(mtry = c(1:(length(cols_RF_Obra) - 1)))
 ctrl <- trainControl(method = "cv", number = 10)
 set.seed(1234)
-randomForestObra <- train(Diferencia ~ ., data = quintetos_obra_limpos[, cols_RF_Obra], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+randomForestObra <- train(Diferencia ~ ., data = quintetos_obra_limpos_norm[, cols_RF_Obra], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 #randomForestObra <- train(Diferencia ~ ., data = quintetos_obra_limpos, method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 #randomForestObra <- train(Diferencia ~ ., data = quintetos_obra_limpos[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Diferencia")], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 
@@ -744,74 +745,42 @@ randomForestObra
 ```
 
 ```{r}
+range(quintetos_obra_limpos_norm$Diferencia)
+randomForestObra$results$MAE[randomForestObra$bestTune$mtry] / sd(quintetos_obra_limpos_norm$Diferencia)
+```
+
+```{r}
 preds <- predict(randomForestObra)
-datos_preds <- data.frame(obs = quintetos_obra_limpos$Diferencia, pred = preds)
+datos_preds <- data.frame(obs = quintetos_obra_limpos_norm$Diferencia, pred = preds)
+sum((datos_preds$obs < 0) != (datos_preds$pred < 0))
+
 datos_preds
 ```
 
-```{r}
-mean(randomForestObra$results$MAE) / sd(quintetos_obra_limpos$Diferencia)
-(datos_preds$obs < 0) == (datos_preds$pred < 0)
-```
-
-```{r}
-quintetos_obra2_limpos <- preprocesado_quintetos(quintetos_obra2)
-
-mediasObra <- colMeans(quintetos_obra_limpos)
-desviacionsObra <- apply(quintetos_obra_limpos, 2, sd)
-
-quintetos_obra2_limpos_norm <- as.data.frame(scale(quintetos_obra2_limpos, center = mediasObra, scale = desviacionsObra))
-quintetos_obra2_limpos_norm
-```
 
 ### Predición sobre quintetos non explorados:
 ```{r}
-predsObra2 <- predict(randomForestObra, quintetos_obra2_limpos_norm)
+quintetos_obra2_limpos <- preprocesado_quintetos(quintetos_obra2)
+
+
+columnas <- c('Cluster1', 'Cluster2', 'Cluster3', 'Cluster4', 'Cluster5', 'Cluster6')
+non_explorados <- anti_join(quintetos_obra2_limpos, quintetos_obra_limpos, by = columnas)
+
+mediasObra <- colMeans(quintetos_obra_limpos)
+desviacionsObra <- apply(quintetos_obra_limpos, 2, sd)
+non_explorados_norm <- as.data.frame(scale(non_explorados, center = mediasObra, scale = desviacionsObra))
+
+predsObra2 <- predict(randomForestObra, non_explorados_norm)
 
 quinteto_max_pred <- quintetos_obra2_limpos[which.max(predsObra2), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+quinteto_max_pred$Predicion <- max(predsObra2)
+quinteto_max_pred$Xogadores <- quintetos_obra2[which.max(predsObra2), "Xogadores"]
+
 quinteto_max_pred
 ```
 
-
-
-
-## Proba RandomForest Global
 ```{r}
-set.seed(32725752)
-
-# tamano_adestram <- round(0.80 * nrow(quintetos_global_limpos_norm))
-# indices_adestram <- sample(1:nrow(quintetos_global_limpos_norm), tamano_adestram, replace = FALSE)
-# 
-# train_global <- quintetos_global_limpos[indices_adestram, ]
-# test_global <- quintetos_global_limpos[-indices_adestram, ]
-# 
-# train_mean <- colMeans(train_global)
-# train_sd <- apply(train_global, 2, sd)
-# 
-# train_global_norm <- as.data.frame(scale(train_global, center = train_mean, scale = train_sd))
-# test_global_norm <- as.data.frame(scale(test_global, center = train_mean, scale = train_sd))ç
-
-control_rfe = rfeControl(functions = rfFuncs, # random forest
-                      method = "repeatedcv", # repeated cv
-                      repeats = 5, # number of repeats
-                      number = 10) # number of folds
-set.seed(123)
-# Performing RFE
-varsGlobal <- rfe(x = quintetos_global_limpos_norm[, -16], 
-                 y = quintetos_global_limpos_norm$Diferencia, 
-                 sizes = c(1:length(colnames(quintetos_global_limpos_norm))),
-                 rfeControl = control_rfe)
-
-predictors(varsGlobal)
-```
-
-```{r}
-varsGlobal <- c(predictors(varsGlobal), "Diferencia")
-tuneGrid <- expand.grid(mtry = c(1:(length(varsGlobal) - 1)) )
-
-ctrl <- trainControl(method = "cv", number = 10)
-randomForestGlobal <- train(Diferencia ~ ., data = quintetos_global_limpos_norm[, varsGlobal], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
-
-randomForestGlobal
+hist(quintetos_obra_limpos_norm$Diferencia, breaks = 10)
+abline(v = max(predsObra2), col = "blue", lwd = 2)
 ```
 

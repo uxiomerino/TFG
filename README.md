@@ -1,7 +1,7 @@
 # TFG
 
 Funcionalidades do código a implementar ou correxir:
-  - **Punto 1: PCA** : <br>
+  - **Punto 1: PCA** <br>
     * Sustituir similitudes por distancias *FEITO* <br>
     * Utilizar só a ACB *FEITO* <br>
     * Utilidades: <br>
@@ -11,16 +11,16 @@ Funcionalidades do código a implementar ou correxir:
           - Xogador máis cercano a un dado <br>
           - Distancia entre dous xogadores específicos <br>
           - Xogadores máis cercanos ca un umbral fixado a un xogador dado 
-  - **Punto 2: Clustering** : <br>
+  - **Punto 2: Clustering** <br>
         * Clustering coa bdd completa *FEITO* <br>
         * Análise dos perfís que ten o Obradoiro (en contraposición cos de outros equipos) *FEITO* <br>
         * Mellor agrupación: **CLUSTERING XERÁRQUICO, distancia euclídea método de Ward2**
-  - **Punto 3: Regresión** : <br>
-        * Axuste específico Obradoiro CAB:<br>
-          - Realizar un corte dos minutos por quinteto, paso dese quinteto a clusters <br>
-          - Agrupar os quintetos por clusters <br>
-          - Axustar un modelo de regresión coas variables por equipo máis significativas na diferencia de puntos <br>
-          - Obter os valores das agrupacións de quintetos nesas variables e a diferencia total <br>
-          - Sacar a predición para esa configuración segundo o modelo anterior <br>
-        * Axuste global: <br>
-          - Repetir o anterior con todos os quintetos do global dos equipos, menos coas configuracions xa probadas polo Obradoiro <br>
+  - **Punto 3: Regresión** <br>
+        **Axuste específico Obradoiro CAB:** <br>
+          - Realizar dous cortes dos quintetos por minutos (10 e 5, p.ex) <br>
+          - Preprocesado dos quintetos (engadir clusters dos xogadores) <br>
+          - Transformación logarítmica da variable resposta "Diferencia" <br>
+          - Modelo RandomForest cos quintetos do primeiro corte (10 mins) <br>
+          - Avaliación do modelo coa variable resposta orixinal <br>
+          - Predición nos quintetos de segundo corte non presentes no primeiro <br>
+          - Predición a combinacións de clusters non probadas <br>

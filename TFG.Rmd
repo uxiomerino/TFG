@@ -797,6 +797,8 @@ non_expl_max
 
 
 ```{r}
+summary(diferencia_orixinal)
+
 hist(diferencia_orixinal, breaks = 10)
 abline(v = quinteto_max_pred$Predicion, col = "blue", lwd = 2)
 abline(v = non_expl_max$Predicion, col = "red", lwd = 2)

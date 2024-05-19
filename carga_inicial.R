@@ -471,14 +471,36 @@ save(quintetos_global, file = "quintetos_global.RData")
 
 
 
+setwd("~/GCED/TFG/Datos/Intermedios")
+# Quintetos globais (parte 1)
+TOObra<- read.csv("%TOObra.csv")
+AsistObra <- read.csv("%AsistObra.csv")
+RebDefObra <- read.csv("RebDefObra.csv")
+RebOfObra <- read.csv("RebOfObra.csv")
+RebTotObra <- read.csv("RebTotObra.csv")
+TL_FObra <- read.csv("TL_FObra.csv")
+TL_MinObra <- read.csv("TL_MinObra.csv")
+T3AsistObra <- read.csv("T3AsistObra.csv")
+T2AsistObra <- read.csv("T2AsistObra.csv")
+TAsistObra <- read.csv("TAsistObra.csv")
+PPT3Obra <- read.csv("PPT3Obra.csv")
+PPT2Obra <- read.csv("PPT2Obra.csv")
+PPTObra <- read.csv("PPTObra.csv")
+PPPosObra <- read.csv("PPPosObra.csv")
+PPMinObra <- read.csv("PPMinObra.csv")
+PuntosObra <- read.csv("PuntosObra.csv")
 
 
 
+quintetos_obra <- data.frame(Xogadores = PPMinObra$Xogadores, Minutos = PPMinObra$Minutos, PPMin = PPMinObra$Media, PPPos = PPPosObra$Media, PPT = PPTObra$Media,
+                               PPT2 = PPT2Obra$Media, PPT3 = PPT3Obra$Media, TAsist = TAsistObra$Media, 
+                               T2Asist = T2AsistObra$Media, T3Asist = T3AsistObra$Media, TL_Min = TL_MinObra$Media,
+                               TL_F = TL_FObra$Media, RebTot = RebTotObra$Media, RebDef = RebDefObra$Media, 
+                               RebOf = RebOfObra$Media, Asist = AsistObra$Media, TO = TOObra$Media, Diferencia = (PuntosObra$Valor.Equipo - PuntosObra$Valor.Rival))
+head(quintetos_obra)
 
-
-
-
-
+setwd("~/GCED/TFG/Datos")
+save(quintetos_obra, file = "quintetos_obra.RData")
 
 
 

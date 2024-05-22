@@ -176,7 +176,7 @@ save(quintetos, file = "quintetos.RData")
 
 # Liga ACB 2023/24 EQUIPOS
 PPP_Eq <- as.data.frame(read_csv("PPP_Eq.csv")[, c('Xornada', 'Valor Equipo', 'Valor Rival')])
-PPPos_Eq <- read_csv("PPPos_Eq.csv")[, c('Xornada', 'Valor Equipo')]
+PPPos_Eq <- read_csv("PPPos_Eq.csv")[, c('Xornada', 'Valor Equipo', "Equipo")]
 PPT_Eq <- read_csv("PPT_Eq.csv")[, c('Xornada', 'Valor Equipo')]
 PPT2_Eq <- read_csv("PPT2_Eq.csv")[, c('Xornada', 'Valor Equipo')]
 PPT3_Eq <- read_csv("PPT3_Eq.csv")[, c('Xornada', 'Valor Equipo')]
@@ -197,6 +197,7 @@ PPP_Eq$Resultado <- PPP_Eq$`Valor Equipo` - PPP_Eq$`Valor Rival`
 df_equipos <- PPP_Eq[, c('Xornada','Resultado')]
 
 df_equipos$PPPos <- PPPos_Eq[PPPos_Eq$Xornada != 0, ]$`Valor Equipo`
+df_equipos$Equipo <- PPPos_Eq[PPPos_Eq$Xornada != 0, ]$Equipo
 df_equipos$PPT <- PPT_Eq[PPT_Eq$Xornada != 0, ]$`Valor Equipo`
 df_equipos$PPT2 <- PPT2_Eq[PPT2_Eq$Xornada != 0, ]$`Valor Equipo`
 df_equipos$PPT3 <- PPT3_Eq[PPT3_Eq$Xornada != 0, ]$`Valor Equipo`
@@ -221,6 +222,7 @@ df_equipos$FRea <- boxscore$F.Rea...17
 
 head(df_equipos)
 
+setwd("~/GCED/TFG/Datos")
 save(df_equipos, file = "df_equipos.RData")
 
 
@@ -472,7 +474,7 @@ save(quintetos_global, file = "quintetos_global.RData")
 
 
 setwd("~/GCED/TFG/Datos/Intermedios")
-# Quintetos globais (parte 1)
+# Quintetos Obra
 TOObra<- read.csv("%TOObra.csv")
 AsistObra <- read.csv("%AsistObra.csv")
 RebDefObra <- read.csv("RebDefObra.csv")

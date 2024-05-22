@@ -523,10 +523,11 @@ busqueda_xogadores_cercanos(df_con_cluster, "10 DEVON DOTSON", distancia = 3, cl
 ### Axuste cos equipos:
 
 ```{r}
+library(car)
 load("~/GCED/TFG/Datos/df_equipos.RData")
 partidosObra <- df_equipos[df_equipos$Equipo == "Monbus Obradoiro", -c(1, 4)]
 
-head(partidosObra)
+partidosObra
 ```
 
 ```{r}
@@ -538,15 +539,24 @@ summary(victoriasObra)
 MOD_NULL <- lm(Resultado ~ 1, data = partidosObra)
 MOD_FULL <- victoriasObra
 
-stepMod <- step(MOD_NULL, direction = "both", trace = 1,
+stepMod <- step(MOD_FULL, direction = "backward", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL) )
 summary(stepMod)
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ TO + TL_Min + Rec + TL_F + PPT3 + 
-    RebTot, data = partidosObra)
+FIV <- vif(stepMod)
+umbral <- 1/(1-summary(stepMod)$r.squared)
+print(FIV[FIV>umbral])
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + T2Asist + 
+    TL_Min + TL_F + RebTot + `%TL` + Asist + TO + Rec + TRea + 
+    FRea, data = partidosObra)
+
+
 summary(victoriasObra)
 ```
 
@@ -554,6 +564,36 @@ summary(victoriasObra)
 FIV <- vif(victoriasObra)
 umbral <- 1/(1-summary(victoriasObra)$r.squared)
 print(FIV[FIV>umbral])
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + T2Asist + 
+    TL_Min + RebTot + `%TL` + Asist + TO + Rec + TRea + 
+    FRea, data = partidosObra)
+
+summary(victoriasObra)
+```
+
+```{r}
+FIV <- vif(victoriasObra)
+umbral <- 1/(1-summary(victoriasObra)$r.squared)
+print(FIV[FIV>umbral])
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + 
+    TL_Min + RebTot + `%TL` + TO + Rec + TRea + 
+    FRea, data = partidosObra)
+
+summary(victoriasObra)
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT3 + 
+    TL_Min + RebTot + TO + Rec + 
+    FRea, data = partidosObra)
+
+summary(victoriasObra)
 ```
 
 ```{r}

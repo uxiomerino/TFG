@@ -521,66 +521,51 @@ busqueda_xogadores_cercanos(df_con_cluster, "10 DEVON DOTSON", distancia = 3, cl
 ## MODELOS DE REGRESIÓN:
 
 ### Axuste cos equipos:
+
 ```{r}
 load("~/GCED/TFG/Datos/df_equipos.RData")
+partidosObra <- df_equipos[df_equipos$Equipo == "Monbus Obradoiro", -c(1, 4)]
 
-axuste_victorias <- lm(Resultado ~ .-Xornada, data = df_equipos)
-summary(axuste_victorias)
+head(partidosObra)
 ```
 
 ```{r}
-library(car)
-print(vif(axuste_victorias))
+victoriasObra <- lm(Resultado ~ ., data = partidosObra)
+summary(victoriasObra)
 ```
 
 ```{r}
-MOD_NULL <- lm(Resultado ~ 1, data = df_equipos)
-MOD_FULL <- axuste_victorias
+MOD_NULL <- lm(Resultado ~ 1, data = partidosObra)
+MOD_FULL <- victoriasObra
 
 stepMod <- step(MOD_NULL, direction = "both", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL) )
-```
-
-```{r}
 summary(stepMod)
 ```
 
 ```{r}
-FIV <- vif(stepMod)
-umbral <- 1/(1-summary(stepMod)$r.squared)
+victoriasObra <- lm(formula = Resultado ~ TO + TL_Min + Rec + TL_F + PPT3 + 
+    RebTot, data = partidosObra)
+summary(victoriasObra)
+```
+
+```{r}
+FIV <- vif(victoriasObra)
+umbral <- 1/(1-summary(victoriasObra)$r.squared)
 print(FIV[FIV>umbral])
 ```
 
 ```{r}
-axuste_victorias_final <- lm(Resultado ~ PPT + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F + T3Asist, data = df_equipos)
-summary(axuste_victorias_final)
+plot(victoriasObra)
 ```
 
 ```{r}
-axuste_victorias_final <- lm(Resultado ~ PPT + Rec + TO + TRea + RebDef + RebOf + TAsist + TL_F, data =df_equipos)
-summary(axuste_victorias_final)
-plot(axuste_victorias_final)
-```
-
-```{r}
-FIV <- vif(axuste_victorias_final)
-umbral <- 1/(1-summary(axuste_victorias_final)$r.squared)
-print(FIV[FIV>umbral])
-```
-
-```{r}
-shapiro.test(axuste_victorias_final$residuals)
-```
-
-```{r}
-im <- influence.measures(axuste_victorias_final)
-summary(im)
+shapiro.test(victoriasObra$residuals)
 ```
 
 
 ### Axuste xogadores
-
 ### Análise coa diferencia
 ```{r}
 load("~/GCED/TFG/Datos/quintetos_obra.RData")
@@ -731,7 +716,7 @@ varsObra <- rfe(x = quintetos_obra_limpos[, -16],
 predictors(varsObra)
 ```
 
-### RanfomForest
+### RandomForest
 ```{r}
 cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
 

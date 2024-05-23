@@ -792,7 +792,6 @@ varsObra <- rfe(x = quintetos_obra_limpos[, -17],
 predictors(varsObra)
 ```
 
-
 ```{r}
 cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
 
@@ -829,7 +828,11 @@ datos_preds
 ```
 
 ```{r}
-plot(datos_preds)
+plot(datos_preds, xlab = "Observacións", 
+     ylab = "Predicións", 
+     main = "Gráfico de Observacións vs Predicións (Variable Diferencia)")
+
+abline(a = 0, b = 1, col = "red", lty = 2)
 ```
 
 ### Predición sobre quintetos non explorados:
@@ -857,7 +860,6 @@ non_expl_max$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorado
 
 non_expl_max
 ```
-
 
 ```{r}
 summary(diferencia_orixinal)
@@ -888,12 +890,12 @@ control_rfe = rfeControl(functions = rfFuncs,
                       method = "LOOCV")
 set.seed(123)
 
-varsObra3 <- rfe(x = quintetos_obra_limpos[, -22], 
+varsObra2 <- rfe(x = quintetos_obra_limpos[, -22], 
                  y = quintetos_obra_limpos$DiferenciaPorMin, 
                  sizes = c(1:(ncol(quintetos_obra_limpos)-1)),
                  rfeControl = control_rfe)
 
-predictors(varsObra3)
+predictors(varsObra2)
 ```
 
 ```{r}
@@ -903,7 +905,7 @@ tuneGrid <- expand.grid(mtry = c(1:(length(cols_RF_Obra2) - 1)))
 ctrl <- trainControl(method = "LOOCV")
 
 set.seed(123)
-randomForestObra2 <- train(DiferenciaPorMin ~ ., data = quintetos_obra_limpos[, cols_RF_Obra], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+randomForestObra2 <- train(DiferenciaPorMin ~ ., data = quintetos_obra_limpos[, cols_RF_Obra2], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
 
 randomForestObra2
 randomForestObra2$finalModel
@@ -915,49 +917,53 @@ axustarDifPorMin <- function(diferencia) return (expm1(diferencia) - abs(min(Dif
 predsObra3 <- predict(randomForestObra2)
 predsObraAxustadas3 <-axustarDifPorMin(predsObra3)
 
-SSE <- sum((predsObraAxustadas - DifPMin_orixinal)^2)
+SSE <- sum((predsObraAxustadas3 - DifPMin_orixinal)^2)
 SST <- sum((DifPMin_orixinal - mean(DifPMin_orixinal))^2)
 (R2 <- 1 - SSE/SST)
 
-(MAE <- mean(abs(predsObraAxustadas - DifPMin_orixinal)))
+(MAE <- mean(abs(predsObraAxustadas3 - DifPMin_orixinal)))
 
 (MAE / sd(DifPMin_orixinal))
 ```
 
 ```{r}
-datos_preds <- data.frame(obs = DifPMin_orixinal, pred = predsObraAxustadas)
-sum((datos_preds$obs < 0) != (datos_preds$pred < 0))
+datos_preds2 <- data.frame(obs = DifPMin_orixinal, pred = predsObraAxustadas3)
+sum((datos_preds2$obs < 0) != (datos_preds2$pred < 0))
 
-datos_preds
+datos_preds2
 ```
 
 ```{r}
-plot(datos_preds)
+plot(datos_preds2, xlab = "Observacións", 
+     ylab = "Predicións", 
+     main = "Gráfico de Observacións vs Predicións (Diferencia Por Minuto)")
+
+abline(a = 0, b = 1, col = "red", lty = 2)
 ```
 
 ```{r}
 quintetos_obra2_limpos <- preprocesado_quintetos(quintetos_obra2)
 
-predsObra2 <- predict(randomForestObra, quintetos_obra2_limpos)
+predsObra4 <- predict(randomForestObra2, quintetos_obra2_limpos)
 
-quinteto_max_pred <- quintetos_obra2_limpos[which.max(predsObra2), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
-quinteto_max_pred$Predicion <- axustarDifPorMin(max(predsObra2))
+quinteto_max_pred2 <- quintetos_obra2_limpos[which.max(predsObra4), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+quinteto_max_pred2$Predicion <- axustarDifPorMin(max(predsObra4))
 
-quinteto_max_pred$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == quintetos_obra2_limpos$PPMin[which.max(predsObra2)], "Xogadores"]
+quinteto_max_pred2$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == quintetos_obra2_limpos$PPMin[which.max(predsObra4)], "Xogadores"]
 
-quinteto_max_pred
+quinteto_max_pred2
 ```
 
 ```{r}
-non_explorados <- anti_join(quintetos_obra2_limpos, quintetos_obra_limpos, by = c('Cluster1', 'Cluster2', 'Cluster3', 'Cluster4', 'Cluster5', 'Cluster6'))
-predsObra3 <- predict(randomForestObra, non_explorados)
+non_explorados2 <- anti_join(quintetos_obra2_limpos, quintetos_obra_limpos, by = c('Cluster1', 'Cluster2', 'Cluster3', 'Cluster4', 'Cluster5', 'Cluster6'))
+predsObra5 <- predict(randomForestObra2, non_explorados)
 
-non_expl_max <- non_explorados[which.max(predsObra3), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
-non_expl_max$Predicion <- axustarDifPorMin(max(predsObra3))
+non_expl_max2 <- non_explorados[which.max(predsObra5), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+non_expl_max2$Predicion <- axustarDifPorMin(max(predsObra5))
 
-non_expl_max$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorados$PPMin[which.max(predsObra3)], "Xogadores"]
+non_expl_max2$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorados$PPMin[which.max(predsObra5)], "Xogadores"]
 
-non_expl_max
+non_expl_max2
 ```
 
 
@@ -965,7 +971,6 @@ non_expl_max
 summary(DifPMin_orixinal)
 
 hist(DifPMin_orixinal, breaks = 10)
-abline(v = quinteto_max_pred$Predicion, col = "blue", lwd = 2)
-abline(v = non_expl_max$Predicion, col = "red", lwd = 2)
+abline(v = quinteto_max_pred2$Predicion, col = "blue", lwd = 2)
 ```
 

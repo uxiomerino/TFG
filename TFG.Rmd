@@ -527,6 +527,25 @@ library(car)
 load("~/GCED/TFG/Datos/df_equipos.RData")
 partidosObra <- df_equipos[df_equipos$Equipo == "Monbus Obradoiro", -c(1, 4)]
 
+partidosObra$Rival <- c("Zunder Palencia", "Surne Bilbao Basket", "Casademont Zaragoza", "Valencia Basket", 
+                        "MoraBanc Andorra", "Bàsquet Girona", "Dreamland Gran Canaria", "Unicaja", "Baskonia", 
+                        "BAXI Manresa", "Coviran Granada", "Lenovo Tenerife", "Joventut Badalona", "Real Madrid", 
+                        "Río Breogán", "UCAM Murcia", "Barça", "Coviran Granada", "Lenovo Tenerife", "Baskonia", 
+                        "Dreamland Gran Canaria", "Unicaja", "Bàsquet Girona", "Valencia Basket", "UCAM Murcia", 
+                        "Río Breogán")
+
+partidosObra
+```
+
+```{r}
+medias <- df_equipos %>%
+  group_by(Equipo) %>%
+  summarise(mediaDifRival = mean(Resultado, na.rm = TRUE))
+
+partidosObra <- partidosObra %>%
+  left_join(medias, by = c("Rival" = "Equipo"))
+
+partidosObra <- partidosObra[, -20]
 partidosObra
 ```
 
@@ -552,10 +571,9 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + T2Asist + 
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT2 + TAsist + T2Asist + 
     TL_Min + TL_F + RebTot + `%TL` + Asist + TO + Rec + TRea + 
-    FRea, data = partidosObra)
-
+    FRea + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -567,9 +585,9 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + T2Asist + 
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT2 + TAsist + 
     TL_Min + RebTot + `%TL` + Asist + TO + Rec + TRea + 
-    FRea, data = partidosObra)
+    FRea + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -581,17 +599,35 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT2 + PPT3 + TAsist + 
+victoriasObra <- lm(formula = Resultado ~ PPT + TAsist + 
     TL_Min + RebTot + `%TL` + TO + Rec + TRea + 
-    FRea, data = partidosObra)
+    FRea + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT3 + 
-    TL_Min + RebTot + TO + Rec + 
-    FRea, data = partidosObra)
+FIV <- vif(victoriasObra)
+umbral <- 1/(1-summary(victoriasObra)$r.squared)
+print(FIV[FIV>umbral])
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT + TAsist + 
+    TL_Min + RebTot + TO + Rec + FRea + mediaDifRival, data = partidosObra)
+
+summary(victoriasObra)
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT + TL_Min + RebTot + TO +
+                      Rec + FRea + mediaDifRival, data = partidosObra)
+
+summary(victoriasObra)
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT + RebTot + TO + Rec + FRea + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -610,10 +646,10 @@ shapiro.test(victoriasObra$residuals)
 ```{r}
 load("~/GCED/TFG/Datos/quintetos_obra.RData")
 
-quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos > 10, ]
+quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos >= 10, ]
 quintetos_obra1
 
-quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos <= 10, ]
+quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos < 10, ]
 ```
 
 
@@ -715,7 +751,7 @@ preprocesado_quintetos <- function(df){
   df$Cluster5 <- clusters_totais$Cluster5
   df$Cluster6 <- clusters_totais$Cluster6
   
-  df <- df[, -1]
+  #df <- df[, -1]
   
   return(df)
 }
@@ -727,7 +763,7 @@ rowSums(quintetos_obra_limpos[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4"
 ```
 
 ```{r}
-hist(quintetos_obra_limpos$Diferencia, breaks = "FD")
+hist(quintetos_obra_limpos$Diferencia, breaks = 10)
 summary(quintetos_obra_limpos$Diferencia)
 ```
 
@@ -748,7 +784,7 @@ control_rfe = rfeControl(functions = rfFuncs,
                       method = "LOOCV")
 set.seed(123)
 
-varsObra <- rfe(x = quintetos_obra_limpos[, -16], 
+varsObra <- rfe(x = quintetos_obra_limpos[, -17], 
                  y = quintetos_obra_limpos$Diferencia, 
                  sizes = c(1:(ncol(quintetos_obra_limpos)-1)),
                  rfeControl = control_rfe)
@@ -756,7 +792,7 @@ varsObra <- rfe(x = quintetos_obra_limpos[, -16],
 predictors(varsObra)
 ```
 
-### RandomForest
+
 ```{r}
 cols_RF_Obra <- c(predictors(varsObra), 'Diferencia')
 
@@ -785,7 +821,6 @@ SST <- sum((diferencia_orixinal - mean(diferencia_orixinal))^2)
 (MAE / sd(diferencia_orixinal))
 ```
 
-
 ```{r}
 datos_preds <- data.frame(obs = diferencia_orixinal, pred = predsObraAxustadas)
 sum((datos_preds$obs < 0) != (datos_preds$pred < 0))
@@ -793,6 +828,9 @@ sum((datos_preds$obs < 0) != (datos_preds$pred < 0))
 datos_preds
 ```
 
+```{r}
+plot(datos_preds)
+```
 
 ### Predición sobre quintetos non explorados:
 ```{r}
@@ -829,4 +867,105 @@ abline(v = quinteto_max_pred$Predicion, col = "blue", lwd = 2)
 abline(v = non_expl_max$Predicion, col = "red", lwd = 2)
 ```
 
+## Diferencia por minuto
+```{r}
+quintetos_obra_limpos$DiferenciaPorMin <- diferencia_orixinal / quintetos_obra_limpos$Minutos
+hist(quintetos_obra_limpos$DiferenciaPorMin, breaks = "FD")
+
+quintetos_obra_limpos <- quintetos_obra_limpos[, -c(1, 17)]
+```
+
+```{r}
+DifPMin_orixinal <- quintetos_obra_limpos$DiferenciaPorMin
+
+quintetos_obra_limpos$DiferenciaPorMin <- log1p(quintetos_obra_limpos$DiferenciaPorMin + abs(min(quintetos_obra_limpos$DiferenciaPorMin)))
+summary(quintetos_obra_limpos$DiferenciaPorMin)
+hist(quintetos_obra_limpos$DiferenciaPorMin, breaks = "FD")
+```
+
+```{r}
+control_rfe = rfeControl(functions = rfFuncs,
+                      method = "LOOCV")
+set.seed(123)
+
+varsObra3 <- rfe(x = quintetos_obra_limpos[, -22], 
+                 y = quintetos_obra_limpos$DiferenciaPorMin, 
+                 sizes = c(1:(ncol(quintetos_obra_limpos)-1)),
+                 rfeControl = control_rfe)
+
+predictors(varsObra3)
+```
+
+```{r}
+cols_RF_Obra2 <- c(predictors(varsObra2), 'DiferenciaPorMin')
+
+tuneGrid <- expand.grid(mtry = c(1:(length(cols_RF_Obra2) - 1)))
+ctrl <- trainControl(method = "LOOCV")
+
+set.seed(123)
+randomForestObra2 <- train(DiferenciaPorMin ~ ., data = quintetos_obra_limpos[, cols_RF_Obra], method = "rf", trControl = ctrl, tuneGrid = tuneGrid)
+
+randomForestObra2
+randomForestObra2$finalModel
+```
+
+```{r}
+axustarDifPorMin <- function(diferencia) return (expm1(diferencia) - abs(min(DifPMin_orixinal)))
+
+predsObra3 <- predict(randomForestObra2)
+predsObraAxustadas3 <-axustarDifPorMin(predsObra3)
+
+SSE <- sum((predsObraAxustadas - DifPMin_orixinal)^2)
+SST <- sum((DifPMin_orixinal - mean(DifPMin_orixinal))^2)
+(R2 <- 1 - SSE/SST)
+
+(MAE <- mean(abs(predsObraAxustadas - DifPMin_orixinal)))
+
+(MAE / sd(DifPMin_orixinal))
+```
+
+```{r}
+datos_preds <- data.frame(obs = DifPMin_orixinal, pred = predsObraAxustadas)
+sum((datos_preds$obs < 0) != (datos_preds$pred < 0))
+
+datos_preds
+```
+
+```{r}
+plot(datos_preds)
+```
+
+```{r}
+quintetos_obra2_limpos <- preprocesado_quintetos(quintetos_obra2)
+
+predsObra2 <- predict(randomForestObra, quintetos_obra2_limpos)
+
+quinteto_max_pred <- quintetos_obra2_limpos[which.max(predsObra2), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+quinteto_max_pred$Predicion <- axustarDifPorMin(max(predsObra2))
+
+quinteto_max_pred$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == quintetos_obra2_limpos$PPMin[which.max(predsObra2)], "Xogadores"]
+
+quinteto_max_pred
+```
+
+```{r}
+non_explorados <- anti_join(quintetos_obra2_limpos, quintetos_obra_limpos, by = c('Cluster1', 'Cluster2', 'Cluster3', 'Cluster4', 'Cluster5', 'Cluster6'))
+predsObra3 <- predict(randomForestObra, non_explorados)
+
+non_expl_max <- non_explorados[which.max(predsObra3), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+non_expl_max$Predicion <- axustarDifPorMin(max(predsObra3))
+
+non_expl_max$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorados$PPMin[which.max(predsObra3)], "Xogadores"]
+
+non_expl_max
+```
+
+
+```{r}
+summary(DifPMin_orixinal)
+
+hist(DifPMin_orixinal, breaks = 10)
+abline(v = quinteto_max_pred$Predicion, col = "blue", lwd = 2)
+abline(v = non_expl_max$Predicion, col = "red", lwd = 2)
+```
 

@@ -533,6 +533,33 @@ partidosObra$Rival <- c("Zunder Palencia", "Surne Bilbao Basket", "Casademont Za
                         "Río Breogán", "UCAM Murcia", "Barça", "Coviran Granada", "Lenovo Tenerife", "Baskonia", 
                         "Dreamland Gran Canaria", "Unicaja", "Bàsquet Girona", "Valencia Basket", "UCAM Murcia", 
                         "Río Breogán")
+library(readr)
+
+
+boxscore_perdida <- read_csv("~/GCED/TFG/Datos/Intermedios/boxscore_tras_perdida.csv")[, c('Xornada', 'Pts...3')]
+boxscore_RebDef <- read_csv("~/GCED/TFG/Datos/Intermedios/boxscore_tras_RebDef.csv")[, c('Xornada', 'Pts...3')]
+boxscore_RebOf <- read_csv("~/GCED/TFG/Datos/Intermedios/boxscore_tras_RebOf.csv")[, c('Xornada', 'Pts...3')]
+ROf <- read_csv("~/GCED/TFG/Datos/Intermedios/bs_obradoiro_26.csv")[, c('Xornada', 'RO...10')]
+
+TCInt <- c(40+22, 42+29, 42+28, 30+27, 38+27, 36+26, 30+21, 37+21, 43+32, 33+30, 
+           34+24, 34+24, 41+21, 45+26, 36+19, 34+19, 48+26, 33+25, 42+17, 38+26, 
+           42+19, 39+25, 31+27, 38+25, 39+29, 36+22)
+TLInt <- c(17, 23, 26, 18, 24, 22, 25, 18, 33, 16, 15, 28, 15, 4, 33, 23, 20, 27,
+           23, 20, 25, 23, 24, 19, 13, 16)
+Mins <- c(40, 40, 40, 40, 40, 40, 40, 40, 50, 40, 40, 40, 40, 40, 40, 40, 45, 40,
+          40, 40, 40, 40, 40, 40, 40, 40)
+
+PtosPerd <- boxscore_perdida[boxscore_perdida$Xornada != 0, 'Pts...3']
+PtosRebDef <- boxscore_RebDef[boxscore_RebDef$Xornada != 0, 'Pts...3']
+PtosRebOf <- boxscore_RebOf[boxscore_RebOf$Xornada != 0, 'Pts...3']
+ROf <- ROf[ROf$Xornada != 0, ]
+
+RitmoXogo <- c(TCInt + partidosObra$TO - ROf$RO...10 + TLInt * 0.44) * 40 / Mins
+
+partidosObra$RitmoXogo <- RitmoXogo
+partidosObra$PtosPerd <- PtosPerd$Pts...3
+partidosObra$PtosRebDef <- PtosRebDef$Pts...3
+partidosObra$PtosRebOf <- PtosRebOf$Pts...3
 
 partidosObra
 ```
@@ -558,7 +585,7 @@ summary(victoriasObra)
 MOD_NULL <- lm(Resultado ~ 1, data = partidosObra)
 MOD_FULL <- victoriasObra
 
-stepMod <- step(MOD_FULL, direction = "backward", trace = 1,
+stepMod <- step(MOD_FULL, direction = "both", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL) )
 summary(stepMod)
@@ -571,9 +598,15 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + PPT2 + TAsist + T2Asist + 
-    TL_Min + TL_F + RebTot + `%TL` + Asist + TO + Rec + TRea + 
-    FRea + mediaDifRival, data = partidosObra)
+cor(partidosObra[, c('PPPos', 'PPT', 'PPT3', 'TL_Min', 'TL_F', 'RebTot', 'RebOf', 
+                     'RebDef', '%TL', 'Rec', 'FRea', 'mediaDifRival' )])
+```
+
+```{r}
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT3 + TAsist + T2Asist + 
+    TL_F + RebTot + RebOf + RebDef + TO + Rec + 
+    TRea + FRea + RitmoXogo + PtosRebDef + PtosRebOf + mediaDifRival, 
+    data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -585,9 +618,9 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + PPT2 + TAsist + 
-    TL_Min + RebTot + `%TL` + Asist + TO + Rec + TRea + 
-    FRea + mediaDifRival, data = partidosObra)
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT3 + TAsist + T2Asist + TL_F + 
+    RebTot + TO + Rec + TRea + FRea + RitmoXogo + 
+    PtosRebDef + PtosRebOf + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -599,9 +632,9 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + TAsist + 
-    TL_Min + RebTot + `%TL` + TO + Rec + TRea + 
-    FRea + mediaDifRival, data = partidosObra)
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT3 + TAsist + TL_F + 
+    RebTot + TO + Rec + TRea + FRea + RitmoXogo + 
+    PtosRebDef + PtosRebOf + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -613,21 +646,18 @@ print(FIV[FIV>umbral])
 ```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + TAsist + 
-    TL_Min + RebTot + TO + Rec + FRea + mediaDifRival, data = partidosObra)
+victoriasObra <- lm(formula = Resultado ~ PPT + PPT3 + TAsist + TL_F + RebTot + 
+    TO + Rec + TRea + FRea + RitmoXogo + PtosRebDef + PtosRebOf + 
+    mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
 
-```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + TL_Min + RebTot + TO +
-                      Rec + FRea + mediaDifRival, data = partidosObra)
 
-summary(victoriasObra)
-```
 
 ```{r}
-victoriasObra <- lm(formula = Resultado ~ PPT + RebTot + TO + Rec + FRea + mediaDifRival, data = partidosObra)
+victoriasObra <- lm(formula = Resultado ~ PPT3 + RebTot + TO + Rec + FRea + 
+                      PtosRebOf + mediaDifRival, data = partidosObra)
 
 summary(victoriasObra)
 ```
@@ -646,10 +676,10 @@ shapiro.test(victoriasObra$residuals)
 ```{r}
 load("~/GCED/TFG/Datos/quintetos_obra.RData")
 
-quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos >= 10, ]
+quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos >= 7, ]
 quintetos_obra1
 
-quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos < 10, ]
+quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos < 7, ]
 ```
 
 
@@ -965,7 +995,6 @@ non_expl_max2$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorad
 
 non_expl_max2
 ```
-
 
 ```{r}
 summary(DifPMin_orixinal)

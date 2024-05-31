@@ -676,10 +676,10 @@ shapiro.test(victoriasObra$residuals)
 ```{r}
 load("~/GCED/TFG/Datos/quintetos_obra.RData")
 
-quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos >= 7, ]
+quintetos_obra1 <- quintetos_obra[quintetos_obra$Minutos >= 10, ]
 quintetos_obra1
 
-quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos < 7, ]
+quintetos_obra2 <- quintetos_obra[quintetos_obra$Minutos >= 5 & quintetos_obra$Minutos < 10, ]
 ```
 
 
@@ -918,7 +918,7 @@ hist(quintetos_obra_limpos$DiferenciaPorMin, breaks = "FD")
 ```{r}
 control_rfe = rfeControl(functions = rfFuncs,
                       method = "LOOCV")
-set.seed(123)
+set.seed(1234)
 
 varsObra2 <- rfe(x = quintetos_obra_limpos[, -22], 
                  y = quintetos_obra_limpos$DiferenciaPorMin, 

@@ -46,7 +46,7 @@ df_union[df_union$PPPos < 0, ] # Valores non plausibeis
 df_union[df_union$'%Asist' < 0, ] # Valores non plausibeis
 
 df_union[df_union$'%TAsist' < 0, '%Asist'] <- 0
-df_union[df_union$PPP < 0, 'PPPos'] <- 0 
+df_union[df_union$PPP < 0, 'PPP'] <- 0
 ```
 
 Datos atípicos:
@@ -80,8 +80,18 @@ cor_matrix
 ```{r}
 umbral <- 0.7
 
-pares_correlados <- which(abs(cor_matrix) > umbral & cor_matrix < 1, arr.ind = TRUE)
-nrow(pares_correlados) / ((nrow(cor_matrix)^2)/2)
+pares_correlados <- which(abs(cor_matrix) > umbral, arr.ind = TRUE)
+
+# Filtrar para eliminar a diagonal e os duplicados
+pares_correlados <- pares_correlados[pares_correlados[,1] != pares_correlados[,2], ]
+pares_correlados <- pares_correlados[!duplicated(t(apply(pares_correlados, 1, sort))), ]
+
+# Calcula o total de pares posibles
+total_pares <- (ncol(cor_matrix) * (ncol(cor_matrix) - 1)) / 2
+
+# Calcula a porcentaxe de pares que superan o umbral
+porcentaxe_cor <- (nrow(pares_correlados) / total_pares) * 100
+porcentaxe_cor
 
 # Mostrar los pares de variables
 # for (i in 1:nrow(pares_correlados)) {
@@ -317,22 +327,16 @@ busqueda_xogadores_cercanos <- function(df, x1, distancia, equipo = NA, cluster 
 ```
 
 
-Exemplos:
-```{r}
-# Exemplo de uso funcion distancia
 
+```{r}
 distancia(df_dist, '22 EDY TAVARES', "2023/24", '13 SERGIO RODRIGUEZ', "2023/24")
-distancia(df_dist, '22 EDY TAVARES', "2023/24", '0 NIGEL WILLIAMS-GOSS', "2022/23")
-distancia(df_dist, '0 NIGEL WILLIAMS-GOSS', "2022/23", '13 SERGIO RODRIGUEZ', "2022/23")
 distancia(df_dist, '22 EDY TAVARES',"2023/24", '17 VINCENT POIRIER', "2023/24") 
 ```
 
 ```{r}
 # Exemplo de uso funcion buscar_xogador
-buscar_xogador(df_dist, "22 EDY TAVARES", año = "2023/24")
-buscar_xogador(df_dist, "22 EDY TAVARES", año = "2022/23")
-buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro")
-buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro", año = "2022/23")
+
+buscar_xogador(df_dist, "22 EDY TAVARES", equipo = "Monbus Obradoiro", año = "2023/24")
 ```
 
 ```{r}
@@ -449,11 +453,11 @@ plot_ly(data = plot_clusters_jerarquico_euclideo, x = ~CP1, y = ~CP2, z = ~CP3, 
 
 ```{r}
 plot(clustering_jerarquico_euclideo)
-rect.hclust(clustering_jerarquico_euclideo, h=30)
+rect.hclust(clustering_jerarquico_euclideo, h = 30)
 
 library(dendextend)
 dend <- as.dendrogram(clustering_jerarquico_euclideo)
-dend_colored <- color_branches(dend, h=30)
+dend_colored <- color_branches(dend, h = 30)
 plot(dend_colored)
 ```
 
@@ -469,7 +473,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 5, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 7, ]
 ```
 
 ## ANALISIS DOS PERFIS DOS EQUIPOS
@@ -574,6 +578,22 @@ partidosObra <- partidosObra %>%
 
 partidosObra <- partidosObra[, -20]
 partidosObra
+```
+
+```{r}
+medias %>% arrange(desc(mediaDifRival))
+```
+
+```{r}
+hist(partidosObra$Resultado, breaks = "FD")
+```
+
+```{r}
+summary(partidosObra$Resultado)
+```
+
+```{r}
+boxplot(partidosObra$Resultado)
 ```
 
 ```{r}
@@ -918,7 +938,7 @@ hist(quintetos_obra_limpos$DiferenciaPorMin, breaks = "FD")
 ```{r}
 control_rfe = rfeControl(functions = rfFuncs,
                       method = "LOOCV")
-set.seed(1234)
+set.seed(54321)
 
 varsObra2 <- rfe(x = quintetos_obra_limpos[, -22], 
                  y = quintetos_obra_limpos$DiferenciaPorMin, 
@@ -1001,5 +1021,6 @@ summary(DifPMin_orixinal)
 
 hist(DifPMin_orixinal, breaks = 10)
 abline(v = quinteto_max_pred2$Predicion, col = "blue", lwd = 2)
+abline(v = non_expl_max2$Predicion, col = "red", lwd = 2)
 ```
 

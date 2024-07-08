@@ -145,7 +145,7 @@ for (i in 1:5){
 ```{r}
 loadings <- pca$rotation[, 1:5]
 sort(loadings[, 1], decreasing = TRUE) 
-barplot(loadings[, 1], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 1",
+barplot(loadings[, 1], las = 2, cex.names = 0.8, main = "Contribución das variables á CP1",
         xlab = "Variable", ylab = "Loading en Dimensión 1", col = "skyblue", border = "black")
 ```
 +: Anotación de 3
@@ -161,7 +161,7 @@ minN[1]
 
 ```{r}
 sort(loadings[, 2], decreasing = TRUE)
-barplot(loadings[, 2], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 2",
+barplot(loadings[, 2], las = 2, cex.names = 0.8, main = "Contribución das variables á CP2",
         xlab = "Variable", ylab = "Loading en Dimensión 2", col = "skyblue", border = "black")
 ```
 +: Anotación de 3, Asistencias, Recuperacions e Perdidas
@@ -178,7 +178,7 @@ minN[2]
 
 ```{r}
 sort(loadings[, 3], decreasing = TRUE)
-barplot(loadings[, 3], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 3",
+barplot(loadings[, 3], las = 2, cex.names = 0.8, main = "Contribución das variables á CP3",
         xlab = "Variable", ylab = "Loading en Dimensión 3", col = "skyblue", border = "black")
 ```
 +: Pérdidas, Asistencias, Faltas realizadas
@@ -195,7 +195,7 @@ minN[3]
 
 ```{r}
 sort(loadings[, 4], decreasing = TRUE) 
-barplot(loadings[, 4], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 4",
+barplot(loadings[, 4], las = 2, cex.names = 0.8, main = "Contribución das variables á CP4",
         xlab = "Variable", ylab = "Loading en Dimensión 4", col = "skyblue", border = "black")
 ```
 +: Moito volume de tiros (non asistidos), TRec, anotacion, LE (variación dos compañeiros, moitos minutos)
@@ -212,7 +212,7 @@ minN[4]
 
 ```{r}
 sort(loadings[, 5], decreasing = TRUE) 
-barplot(loadings[, 5], las = 2, cex.names = 0.8, main = "Contribución das variables á Dimensión 5",
+barplot(loadings[, 5], las = 2, cex.names = 0.8, main = "Contribución das variables á CP5",
         xlab = "Variable", ylab = "Loading en Dimensión 5", col = "skyblue", border = "black")
 ```
 +: LE (variación de compañeiros), FRec, Perdidas, %Rebotes, Faltas, 
@@ -473,7 +473,7 @@ for (i in 1:4){
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 7, ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$CLUSTER == 6, ]
 ```
 
 ## ANALISIS DOS PERFIS DOS EQUIPOS
@@ -483,8 +483,7 @@ ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equi
 ```
 
 ```{r}
-ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" &
-                                        ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
+ordered_clustered_jerarquico_euclideo[ordered_clustered_jerarquico_euclideo$Equipo == "Monbus Obradoiro" & ordered_clustered_jerarquico_euclideo$Ano == "2023/24", ]
 ```
 
 ```{r}
@@ -605,7 +604,7 @@ summary(victoriasObra)
 MOD_NULL <- lm(Resultado ~ 1, data = partidosObra)
 MOD_FULL <- victoriasObra
 
-stepMod <- step(MOD_FULL, direction = "both", trace = 1,
+stepMod <- step(MOD_FULL, direction = "backward", trace = 1,
                 scope = list(lower = MOD_NULL, 
                              upper = MOD_FULL) )
 summary(stepMod)
@@ -813,7 +812,7 @@ rowSums(quintetos_obra_limpos[, c("Cluster1", "Cluster2", "Cluster3", "Cluster4"
 ```
 
 ```{r}
-hist(quintetos_obra_limpos$Diferencia, breaks = 10)
+hist(quintetos_obra_limpos$Diferencia, breaks = "FD")
 summary(quintetos_obra_limpos$Diferencia)
 ```
 
@@ -822,6 +821,8 @@ diferencia_orixinal <- quintetos_obra_limpos$Diferencia
 
 quintetos_obra_limpos$Diferencia <- log1p(quintetos_obra_limpos$Diferencia + abs(min(quintetos_obra_limpos$Diferencia)))
 summary(quintetos_obra_limpos$Diferencia)
+
+hist(quintetos_obra_limpos$Diferencia, breaks = "FD")
 ```
 
 
@@ -914,7 +915,7 @@ non_expl_max
 ```{r}
 summary(diferencia_orixinal)
 
-hist(diferencia_orixinal, breaks = 10)
+hist(diferencia_orixinal, breaks= "FD")
 abline(v = quinteto_max_pred$Predicion, col = "blue", lwd = 2)
 abline(v = non_expl_max$Predicion, col = "red", lwd = 2)
 ```
@@ -1009,6 +1010,7 @@ non_explorados2 <- anti_join(quintetos_obra2_limpos, quintetos_obra_limpos, by =
 predsObra5 <- predict(randomForestObra2, non_explorados)
 
 non_expl_max2 <- non_explorados[which.max(predsObra5), c("Cluster1", "Cluster2", "Cluster3", "Cluster4", "Cluster5", "Cluster6")]
+
 non_expl_max2$Predicion <- axustarDifPorMin(max(predsObra5))
 
 non_expl_max2$Xogadores <- quintetos_obra2[quintetos_obra2$PPMin == non_explorados$PPMin[which.max(predsObra5)], "Xogadores"]

@@ -527,6 +527,8 @@ busqueda_xogadores_cercanos(df_con_cluster, "10 DEVON DOTSON", distancia = 3, cl
 
 ```{r}
 library(car)
+library(lmtest)
+
 load("~/GCED/TFG/Datos/df_equipos.RData")
 partidosObra <- df_equipos[df_equipos$Equipo == "Monbus Obradoiro", -c(1, 4)]
 
@@ -687,6 +689,20 @@ plot(victoriasObra)
 
 ```{r}
 shapiro.test(victoriasObra$residuals)
+```
+
+```{r}
+bptest(victoriasObra)
+```
+
+```{r}
+library(MASS)
+library(tseries)
+
+res.est  <- stdres(victoriasObra) 
+Box.test(res.est, lag = 5, type = "Ljung-Box")
+
+runs.test(as.factor(sign(res.est)))
 ```
 
 

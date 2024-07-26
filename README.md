@@ -24,3 +24,12 @@ Funcionalidades do código a implementar ou correxir:
           - Avaliación do modelo coa variable resposta orixinal <br>
           - Predición nos quintetos de segundo corte non presentes no primeiro <br>
           - Predición a combinacións de clusters non probadas <br>
+
+
+MEMORIA:
+  - **A facer:** <br>
+    * Conclusións (prácticas e teóricas) <br>
+    * CITAS <br>
+    * Costes ? <br>
+  - **A correxir:** <br>
+    * Citar apéndice ao nomear as variables durante a memoria

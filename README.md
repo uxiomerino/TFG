@@ -1,32 +1,5 @@
 # TFG
 
-Funcionalidades do código a implementar ou correxir:
-  - **Punto 1: PCA** <br>
-    * Sustituir similitudes por distancias *FEITO* <br>
-    * Utilizar só a ACB *FEITO* <br>
-    * Utilidades: <br>
-      1. Reducción dimensionalidade (explica un 73.8% da varianza en 5 compoñentes, no lugar das 36 iniciais) <br>
-      2. Matrices de distancias <br>
-      3. **Ferramentas de búsqueda:** <br>
-          - Xogador máis cercano a un dado <br>
-          - Distancia entre dous xogadores específicos <br>
-          - Xogadores máis cercanos ca un umbral fixado a un xogador dado 
-  - **Punto 2: Clustering** <br>
-        * Clustering coa bdd completa *FEITO* <br>
-        * Análise dos perfís que ten o Obradoiro (en contraposición cos de outros equipos) *FEITO* <br>
-        * Mellor agrupación: **CLUSTERING XERÁRQUICO, distancia euclídea método de Ward2**
-  - **Punto 3: Regresión** <br>
-        **Axuste específico Obradoiro CAB:** <br>
-          - Realizar dous cortes dos quintetos por minutos (10 e 5, p.ex) <br>
-          - Preprocesado dos quintetos (engadir clusters dos xogadores) <br>
-          - Transformación logarítmica da variable resposta "Diferencia" <br>
-          - Modelo RandomForest cos quintetos do primeiro corte (10 mins) <br>
-          - Avaliación do modelo coa variable resposta orixinal <br>
-          - Predición nos quintetos de segundo corte non presentes no primeiro <br>
-          - Predición a combinacións de clusters non probadas <br>
-
-
-MEMORIA:
-  * Conclusións (prácticas e teóricas) <br>
-  * CITAS <br>
-  * Costes ? <br>
+A idea deste traballo é mostrar a utilidade da aplicación de técnicas estatísticas no ámbito do baloncesto, usando diferentes ferramentas para dar solución ás situacións presentadas polo Obradoiro CAB, equipo profesional de baloncesto, a través do seu analista  de datos. Todas as bases de datos utilizadas foron cedidas polo propio clube, e conteñen grandes cantidades de información da Liga ACB da tempada actual (2023/24) e a anterior (2022/23), tanto para xogadores (individualmente e agrupados por quintetos en xogo) como para equipos (variables de rendemento dos equipos en cada partido).
+Partindo destas bases de datos, aplicamos distintas técnicas, cada unha con obxectivosmdistintos. A nivel individual dos xogadores, aplicaremos un ACP e técnicas de clustering, para resumir a variabilidade dos datos en menos compoñentes, facilitar a representación e etiquetar aos xogadores polo seu estilo de xogo de maneira obxectiva. Para poder optimizar o rendemento, construímos modelos de regresión (lineais e de Machine Learning) cos datos a nivel de equipo e de quintetos para buscar variables relevantes e configuracións de xogadores que dean mellores resultados.
+O deporte é unha rama máis na que o Big Data é decisivo para a toma de decisións estratéxicas e poder obter unha vantaxe competitiva con respecto aos rivais, o que se trata de mostrar neste traballo. O obxectivo global era poder obter unha ferramenta que levase á optimización de xogadores e do seu rendemento, e os resultados obtidos demostran que a aplicación destes métodos axudan en gran medida a lograr isto, transformando os datos en vantaxes.

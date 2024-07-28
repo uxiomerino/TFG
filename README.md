@@ -27,9 +27,6 @@ Funcionalidades do código a implementar ou correxir:
 
 
 MEMORIA:
-  - **A facer:** <br>
-    * Conclusións (prácticas e teóricas) <br>
-    * CITAS <br>
-    * Costes ? <br>
-  - **A correxir:** <br>
-    * Citar apéndice ao nomear as variables durante a memoria
+  * Conclusións (prácticas e teóricas) <br>
+  * CITAS <br>
+  * Costes ? <br>

@@ -45,8 +45,8 @@ summary(df_union)
 df_union[df_union$PPPos < 0, ] # Valores non plausibeis
 df_union[df_union$'%Asist' < 0, ] # Valores non plausibeis
 
-df_union[df_union$'%TAsist' < 0, '%Asist'] <- 0
-df_union[df_union$PPP < 0, 'PPP'] <- 0
+df_union[df_union$'%Asist' < 0, '%Asist'] <- 0
+df_union[df_union$PPPos < 0, 'PPPos'] <- 0
 ```
 
 Datos atípicos:
